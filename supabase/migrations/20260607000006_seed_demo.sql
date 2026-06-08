@@ -3,7 +3,6 @@
 truncate movimentacoes, lotes, produtos, fornecedores, categorias, setores
   restart identity cascade;
 
--- Cadastros base
 insert into setores (nome) values
   ('Vigilância Ambiental'), ('Vacinação'), ('Almoxarifado'), ('Controle de Vetores');
 
@@ -15,7 +14,6 @@ insert into fornecedores (nome, contato) values
   ('VetSupply Brasil', 'vendas@vetsupply.example'),
   ('Saúde Pública Insumos', 'sp@insumos.example');
 
--- Produtos
 insert into produtos (nome, categoria_id, fornecedor_id, setor_id, unidade, estoque_minimo)
 values
   ('Vacina Antirrábica Canina',
@@ -43,7 +41,6 @@ values
      (select id from fornecedores where nome='BioFarma Distribuidora'),
      (select id from setores where nome='Vacinação'), 'dose', 40);
 
--- Lotes (validades variadas — algumas vencendo em <30d)
 insert into lotes (produto_id, codigo, validade) values
   ((select id from produtos where nome='Vacina Antirrábica Canina'), 'ANTIR-2026-01', current_date + 20),
   ((select id from produtos where nome='Soro Antiofídico Polivalente'), 'SORO-A12', current_date + 365),
@@ -52,7 +49,6 @@ insert into lotes (produto_id, codigo, validade) values
   ((select id from produtos where nome='Larvicida Biológico (BTI)'), 'BTI-2026', current_date + 90),
   ((select id from produtos where nome='Vacina V10 Canina'), 'V10-77', current_date + 25);
 
--- Entradas iniciais (o trigger aplica ao saldo dos lotes)
 insert into movimentacoes (produto_id, lote_id, tipo, quantidade, motivo, created_at) values
   ((select id from produtos where nome='Vacina Antirrábica Canina'),
      (select id from lotes where codigo='ANTIR-2026-01'), 'entrada', 200, 'Recebimento BioFarma', now() - interval '6 days'),
@@ -67,7 +63,6 @@ insert into movimentacoes (produto_id, lote_id, tipo, quantidade, motivo, create
   ((select id from produtos where nome='Vacina V10 Canina'),
      (select id from lotes where codigo='V10-77'), 'entrada', 120, 'Recebimento BioFarma', now() - interval '3 days');
 
--- Saídas (campanhas / consumo) — geram histórico e estoque baixo onde aplicável
 insert into movimentacoes (produto_id, lote_id, tipo, quantidade, motivo, created_at) values
   ((select id from produtos where nome='Vacina Antirrábica Canina'),
      (select id from lotes where codigo='ANTIR-2026-01'), 'saida', 30, 'Campanha de vacinação', now() - interval '2 days'),
