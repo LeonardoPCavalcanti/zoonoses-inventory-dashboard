@@ -20,6 +20,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+				display: ['Fraunces', 'Georgia', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -87,11 +88,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-up': {
+					'0%': { opacity: '0', transform: 'translateY(10px)' },
+					'100%': { opacity: '1', transform: 'translateY(0)' }
+				},
+				'pulse-ring': {
+					'0%': { boxShadow: '0 0 0 0 hsl(var(--primary) / 0.45)' },
+					'70%': { boxShadow: '0 0 0 10px hsl(var(--primary) / 0)' },
+					'100%': { boxShadow: '0 0 0 0 hsl(var(--primary) / 0)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-up': 'fade-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) both',
+				'pulse-ring': 'pulse-ring 1.1s ease-out'
 			}
 		}
 	},

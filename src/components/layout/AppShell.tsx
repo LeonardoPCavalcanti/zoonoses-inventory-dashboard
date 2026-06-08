@@ -32,18 +32,21 @@ export default function AppShell({ children }: { children: ReactNode }) {
     ?.label;
 
   return (
-    <div className="flex min-h-screen bg-muted/20">
-      {/* Sidebar */}
-      <aside className="hidden w-60 flex-col border-r bg-card md:flex">
-        <div className="flex items-center gap-2 px-5 py-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+    <div className="flex min-h-screen bg-background">
+      {/* Sidebar — painel escuro em contraste */}
+      <aside className="hidden w-64 flex-col bg-sidebar text-sidebar-foreground md:flex">
+        <div className="flex items-center gap-3 px-5 py-6">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground shadow-lg shadow-black/20">
             <Boxes className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold">Zoonoses</p>
-            <p className="text-xs text-muted-foreground">Controle de Estoque</p>
+            <p className="font-display text-lg font-semibold tracking-tight">Zoonoses</p>
+            <p className="text-[0.7rem] uppercase tracking-[0.14em] text-sidebar-foreground/50">
+              Controle de Estoque
+            </p>
           </div>
         </div>
+
         <nav className="flex-1 space-y-1 px-3 py-2">
           {nav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
@@ -52,31 +55,55 @@ export default function AppShell({ children }: { children: ReactNode }) {
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    ? 'bg-sidebar-accent text-sidebar-primary'
+                    : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground',
                 )
               }
             >
-              <Icon className="h-4 w-4" />
-              {label}
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={cn(
+                      'absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-sidebar-primary transition-all duration-200',
+                      isActive ? 'opacity-100' : 'opacity-0',
+                    )}
+                  />
+                  <Icon className="h-[1.05rem] w-[1.05rem]" />
+                  {label}
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
-        <div className="border-t p-3 text-xs text-muted-foreground">
-          {profile ? (
-            <span className="capitalize">{profile.papel}</span>
-          ) : (
-            'Carregando…'
-          )}
+
+        <div className="border-t border-sidebar-border px-5 py-4">
+          <p className="text-xs text-sidebar-foreground/55">
+            {profile ? (
+              <>
+                Sessão · <span className="capitalize text-sidebar-foreground/80">{profile.papel}</span>
+              </>
+            ) : (
+              'Carregando…'
+            )}
+          </p>
         </div>
       </aside>
 
       {/* Main */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b bg-card px-4 md:px-6">
-          <h1 className="text-base font-semibold">{titulo ?? 'Painel'}</h1>
+        <header className="flex h-16 items-center justify-between border-b bg-card/80 px-4 backdrop-blur md:px-8">
+          <div className="flex items-center gap-3">
+            <h1 className="font-display text-xl font-semibold tracking-tight">{titulo ?? 'Painel'}</h1>
+            <span className="hidden items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-2.5 py-1 text-[0.65rem] font-medium uppercase tracking-wider text-primary sm:inline-flex">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-primary" />
+              </span>
+              Ao vivo
+            </span>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -95,7 +122,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+
+        {/* Transição leve por rota (key remonta o conteúdo) */}
+        <main key={location.pathname} className="flex-1 animate-fade-up p-4 md:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );

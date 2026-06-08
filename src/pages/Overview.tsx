@@ -54,30 +54,38 @@ export default function Overview() {
   return (
     <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Produtos ativos" value={metricas.totalProdutos} icon={<Package className="h-5 w-5" />} />
+        <StatCard
+          label="Produtos ativos"
+          value={metricas.totalProdutos}
+          icon={<Package className="h-5 w-5" />}
+          delay={0}
+        />
         <StatCard
           label="Em estoque baixo"
           value={metricas.estoqueBaixo}
           icon={<AlertTriangle className="h-5 w-5" />}
           tone={metricas.estoqueBaixo > 0 ? 'danger' : 'default'}
+          delay={60}
         />
         <StatCard
           label="Vencendo em ≤30 dias"
           value={metricas.vencendo30}
           icon={<CalendarClock className="h-5 w-5" />}
           tone={metricas.vencendo30 > 0 ? 'warning' : 'default'}
+          delay={120}
         />
         <StatCard
           label="Movimentações hoje"
           value={metricas.movimentacoesHoje}
           icon={<ArrowLeftRight className="h-5 w-5" />}
+          delay={180}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Movimentações (7 dias)</CardTitle>
+            <CardTitle className="font-display text-base font-semibold">Movimentações (7 dias)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -95,7 +103,7 @@ export default function Overview() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Estoque por setor</CardTitle>
+            <CardTitle className="font-display text-base font-semibold">Estoque por setor</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -114,7 +122,7 @@ export default function Overview() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Estoque baixo</CardTitle>
+            <CardTitle className="font-display text-base font-semibold">Estoque baixo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {baixos.length === 0 && <p className="text-sm text-muted-foreground">Nenhum item em estoque baixo.</p>}
@@ -131,7 +139,7 @@ export default function Overview() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Vencendo em breve</CardTitle>
+            <CardTitle className="font-display text-base font-semibold">Vencendo em breve</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {vencendo.length === 0 && <p className="text-sm text-muted-foreground">Nenhum lote vencendo em 30 dias.</p>}
