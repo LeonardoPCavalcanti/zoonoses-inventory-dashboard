@@ -1,100 +1,109 @@
-# Zoonoses Inventory Dashboard
+# Zoonoses — Controle de Estoque em Tempo Real
 
-Frontend application for the zoonosis control center inventory management system. Built with React 18 and TypeScript, using Vite as the build tool and TailwindCSS with Radix UI primitives for the component layer.
+![React](https://img.shields.io/badge/React-18-20232A?logo=react&logoColor=61DAFB)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?logo=tailwindcss&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+Controle de estoque **multiusuário e em tempo real** para um centro de zoonoses
+(vacinas, soros, medicamentos, EPI, material de campo). Uma movimentação
+registrada por um operador aparece **na hora** na tela de todos os outros —
+sem recarregar a página.
+
+**🔗 Demo ao vivo: [leonardopcavalcanti.github.io/zoonoses-inventory-dashboard](https://leonardopcavalcanti.github.io/zoonoses-inventory-dashboard/)**
+
+> **Conta de demonstração:** `demo@zoonoses.app` · senha `demo-zoonoses-2026`
+> (ou clique em **"Entrar como demonstração"**). É um perfil *operador*: registra
+> movimentações sem apagar os cadastros base, para o demo sobreviver ao uso público.
+
+[![Painel do controle de estoque](docs/preview.png)](https://leonardopcavalcanti.github.io/zoonoses-inventory-dashboard/)
 
 ---
 
-## Tech Stack
+## O que este projeto ensina
 
-| Category | Technology / Version |
-|----------|---------------------|
-| Language | TypeScript 5.5 |
-| Framework | React 18.3 |
-| Build Tool | Vite 5.4 + SWC (via `@vitejs/plugin-react-swc`) |
-| Styling | TailwindCSS 3.4 + `tailwindcss-animate` |
-| Component Library | Radix UI (headless, unstyled primitives) |
-| Routing | React Router DOM 6.26 |
-| Server State | TanStack Query (React Query) 5.56 |
-| Forms | React Hook Form 7.53 + Zod 3.23 (schema validation) |
-| Charts | Recharts 2.12 |
-| HTTP Client | Axios (via services layer) |
-| Linting | ESLint 9 + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` |
-| Containerization | Docker + Nginx |
+> O ponto central deste projeto é **estado compartilhado em tempo real**: vários
+> operadores olhando o mesmo estoque, cada um vendo as ações dos outros
+> imediatamente — e o estoque permanecendo correto mesmo sob uso concorrente.
+
+### 1. Tempo real por mudanças no banco (Postgres → WebSocket)
+Em vez de *polling* (perguntar ao servidor de tempos em tempos), o cliente
+**assina** as mudanças das tabelas via [Supabase Realtime](https://supabase.com/docs/guides/realtime).
+O Postgres publica cada `INSERT/UPDATE/DELETE` em uma *replication publication*;
+o Supabase entrega esses eventos por WebSocket. No frontend, cada evento
+**invalida o cache** do [TanStack Query](https://tanstack.com/query), que re-busca
+só o que mudou — daí o painel atualizar sozinho (ver `src/hooks/useRealtime.ts`).
+
+### 2. O estoque é verdade no banco, não na interface
+Toda alteração de saldo passa por uma **movimentação** (entrada/saída/ajuste).
+Um **trigger** no Postgres aplica a movimentação ao saldo do lote e **rejeita uma
+saída maior que o disponível** — a regra vive no banco, então nenhum cliente
+(nem um bug de UI, nem dois cliques simultâneos) consegue furá-la. É o mesmo
+princípio de **integridade no servidor** de qualquer sistema sério.
+Veja `supabase/migrations/*_triggers.sql`.
+
+### 3. Segurança por linha (Row Level Security)
+A `anon key` que vai no navegador é **pública por design**. Quem protege os dados
+é o **RLS**: políticas no Postgres definem que só usuários autenticados leem, e
+que apenas *admins* mexem nos cadastros base. (Você pode confirmar: deslogado,
+a API não retorna nenhuma linha.) Veja `supabase/migrations/*_rls.sql`.
+
+### 4. Validade e lotes — modelagem de domínio
+Vacinas e medicamentos têm **lote e validade**. O estoque de um produto é a soma
+dos seus lotes; os alertas de "vencendo em ≤30 dias" e "estoque baixo" saem de
+uma **view** agregada (`vw_estoque_produto`). Modelar o domínio real (e não um
+CRUD genérico) é o que torna o sistema de fato útil.
+
+**Leituras de referência:**
+- Martin Kleppmann — *Designing Data-Intensive Applications* (estado, consistência, sistemas de dados confiáveis).
+- [Supabase Realtime — Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes).
+- [PostgreSQL — Row Security Policies](https://www.postgresql.org/docs/current/ddl-rowsecurity.html).
 
 ---
 
-## Architecture
+## Funcionalidades
+
+- **Visão geral:** total de produtos, itens em estoque baixo, lotes vencendo,
+  movimentações do dia, gráficos de movimentação (7 dias) e estoque por setor.
+- **Produtos & lotes:** CRUD com categoria/fornecedor/setor, estoque mínimo,
+  código de lote e validade.
+- **Movimentações:** registrar entrada, saída e ajuste — atribuídas ao responsável.
+- **Auditoria:** feed cronológico de todas as ações, atualizado ao vivo.
+- **Cadastros:** setores, categorias e fornecedores (escrita restrita a admin).
+- **Alertas** de estoque baixo e validade próxima; **tema claro/escuro**.
+
+## Stack
+
+- **React 18 + Vite + TypeScript**, **Tailwind CSS** + **shadcn/ui**
+- **Supabase** — Postgres, Auth, **Realtime** e RLS (sem servidor próprio)
+- **TanStack Query** (cache/sincronização), **Recharts**, **Sonner**
+- Deploy: **GitHub Pages** (SPA com HashRouter)
+
+## Arquitetura
 
 ```
-src/
-├── components/     # Reusable UI components (Radix UI + Tailwind wrappers and custom components)
-├── context/        # React Context providers (e.g., authentication state)
-├── hooks/          # Custom React hooks (data fetching, form logic)
-├── lib/            # Utility functions (cn() for class merging, date helpers)
-├── pages/          # Route-level page components (one per route)
-├── services/       # API client functions (Axios calls to the backend)
-├── types/          # TypeScript type and interface definitions
-├── App.tsx         # Root component, router setup
-├── main.tsx        # Entry point, React DOM render
-└── index.css       # Global styles, Tailwind directives
+React (GitHub Pages)  ──HTTPS──>  Supabase PostgREST  ──>  Postgres + RLS + triggers
+        │             <──WSS───   Supabase Realtime   <──  publication (postgres_changes)
+        └─ TanStack Query: evento de mudança → invalida cache → re-busca → UI ao vivo
 ```
 
-**State management pattern:**
-- **Server state** (API data): TanStack Query handles caching, refetching, loading/error states.
-- **Global client state** (auth session): React Context.
-- **Form state**: React Hook Form with Zod schemas for validation.
-- **UI state**: Local `useState` within components.
-
----
-
-## Prerequisites
-
-- Node.js 18+
-- The backend API must be running (see `zoonoses-inventory-api` or `zoonoses-inventory-system`)
-
----
-
-## Running Locally
+## Rodar localmente
 
 ```bash
 npm install
-
-# Start development server (Vite HMR)
-npm run dev
+cp .env.example .env     # preencha VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY
+npm run dev              # http://localhost:8080
 ```
 
-Application available at `http://localhost:8080`.
+O schema e os dados de exemplo estão versionados em `supabase/migrations/`.
+Com a [Supabase CLI](https://supabase.com/docs/guides/cli): `supabase link` +
+`supabase db push` aplica tudo (tabelas, triggers, RLS, Realtime e seed).
 
 ---
 
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite development server with Hot Module Replacement |
-| `npm run build` | Compile TypeScript and bundle for production |
-| `npm run build:dev` | Production bundle in development mode (unminified) |
-| `npm run lint` | Run ESLint across all source files |
-| `npm run preview` | Serve the production build locally for verification |
-
----
-
-## Production Build
-
-```bash
-npm run build
-# Output: dist/
-```
-
-The `dist/` folder is a static bundle served by Nginx in the Docker container.
-
----
-
-## Docker
-
-```bash
-docker build -t zoonoses-dashboard .
-docker run -p 3000:80 zoonoses-dashboard
-```
-
-The Nginx configuration (`nginx.conf`) is included in the repository. For the full integrated stack, use the `zoonoses-inventory-system` project.
+> Projeto pessoal de Leonardo Cavalcanti. O backend REST original em Express +
+> Sequelize permanece em
+> [zoonoses-inventory-api](https://github.com/LeonardoPCavalcanti/controle-estoque-zoonoses-api)
+> como referência; este demo ao vivo usa Supabase para o tempo real.
