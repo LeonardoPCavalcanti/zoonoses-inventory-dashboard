@@ -41,6 +41,5 @@ export function useRealtime(bindings: RealtimeBinding[]) {
       supabase.removeChannel(channel);
     };
     // Canal montado uma vez; bindings lidos via ref.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qc]);
 }

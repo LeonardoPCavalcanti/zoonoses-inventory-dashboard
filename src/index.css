@@ -2,90 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ───────────────────────────────────────────────────────────
+   Zoonoses — "precisão clínica com cuidado caloroso".
+   Paleta teal profunda + neutros mornos; sidebar escura em
+   contraste (estética premium de console operacional).
+   ─────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 40 38% 98%;
+    --foreground: 186 32% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 186 32% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 186 32% 11%;
 
-    --primary: 173 80% 33%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 175 78% 29%;
+    --primary-foreground: 40 38% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 42 30% 94%;
+    --secondary-foreground: 186 28% 16%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 42 24% 95%;
+    --muted-foreground: 190 8% 42%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 38 36% 92%;
+    --accent-foreground: 186 28% 16%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 40 38% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 173 80% 33%;
-    --radius: 0.5rem;
+    --border: 40 18% 89%;
+    --input: 40 18% 89%;
+    --ring: 175 78% 29%;
+    --radius: 0.7rem;
 
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar escura mesmo no tema claro (contraste premium). */
+    --sidebar-background: 188 42% 11%;
+    --sidebar-foreground: 40 22% 86%;
+    --sidebar-primary: 170 70% 46%;
+    --sidebar-primary-foreground: 188 42% 8%;
+    --sidebar-accent: 188 32% 17%;
+    --sidebar-accent-foreground: 40 22% 92%;
+    --sidebar-border: 188 26% 19%;
+    --sidebar-ring: 170 70% 46%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 190 32% 7%;
+    --foreground: 40 22% 94%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 190 26% 10%;
+    --card-foreground: 40 22% 94%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 190 26% 10%;
+    --popover-foreground: 40 22% 94%;
 
-    --primary: 172 66% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 170 70% 46%;
+    --primary-foreground: 190 40% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 190 18% 16%;
+    --secondary-foreground: 40 22% 94%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 190 16% 15%;
+    --muted-foreground: 190 10% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 190 18% 16%;
+    --accent-foreground: 40 22% 94%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 62% 46%;
+    --destructive-foreground: 40 22% 94%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 172 66% 45%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 190 16% 17%;
+    --input: 190 16% 17%;
+    --ring: 170 70% 46%;
+
+    --sidebar-background: 190 40% 6%;
+    --sidebar-foreground: 40 20% 84%;
+    --sidebar-primary: 170 70% 46%;
+    --sidebar-primary-foreground: 190 40% 8%;
+    --sidebar-accent: 190 24% 13%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 190 22% 14%;
+    --sidebar-ring: 170 70% 46%;
   }
 }
 
@@ -95,6 +95,41 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'ss01', 'cv05';
+  }
+
+  /* Números tabulares e com peso de display para dados/estoque. */
+  .tabular {
+    font-feature-settings: 'tnum' 1;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Atmosfera sutil — brilhos teal/âmbar muito leves, ancorando o topo.
+   Restrita a quem optar (.has-aura) para não poluir telas densas. */
+.has-aura {
+  position: relative;
+  isolation: isolate;
+}
+.has-aura::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(38rem 26rem at 12% -8%, hsl(175 78% 29% / 0.1), transparent 60%),
+    radial-gradient(34rem 24rem at 92% 6%, hsl(36 70% 55% / 0.08), transparent 58%);
+}
+
+/* Acessibilidade: respeita prefers-reduced-motion (obrigatório). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
