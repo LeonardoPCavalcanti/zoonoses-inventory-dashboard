@@ -12,7 +12,7 @@ Controle de estoque **multiusuário e em tempo real** para um centro de zoonoses
 registrada por um operador aparece **na hora** na tela de todos os outros —
 sem recarregar a página.
 
-**🔗 Demo ao vivo: [leonardopcavalcanti.github.io/zoonoses-inventory-dashboard](https://leonardopcavalcanti.github.io/zoonoses-inventory-dashboard/)**
+**Demo ao vivo: [leonardopcavalcanti.github.io/zoonoses-inventory-dashboard](https://leonardopcavalcanti.github.io/zoonoses-inventory-dashboard/)**
 
 > **Conta de demonstração:** `demo@zoonoses.app` · senha `demo-zoonoses-2026`
 > (ou clique em **"Entrar como demonstração"**). É um perfil *operador*: registra
@@ -83,11 +83,30 @@ CRUD genérico) é o que torna o sistema de fato útil.
 
 ## Arquitetura
 
+```mermaid
+flowchart LR
+    subgraph Cliente["React SPA (GitHub Pages)"]
+        UI[Páginas + shadcn/ui]
+        TQ[TanStack Query<br/>cache]
+        RT[useRealtime<br/>assinatura WebSocket]
+    end
+
+    subgraph Supabase
+        REST[PostgREST<br/>API HTTPS]
+        RTS[Realtime<br/>servidor WSS]
+        PG[(Postgres<br/>RLS + triggers + views)]
+    end
+
+    UI --> TQ
+    TQ -- "leituras/escritas" --> REST --> PG
+    PG -- "publication<br/>postgres_changes" --> RTS
+    RTS -- "evento de mudança" --> RT
+    RT -- "invalida cache → re-busca" --> TQ
 ```
-React (GitHub Pages)  ──HTTPS──>  Supabase PostgREST  ──>  Postgres + RLS + triggers
-        │             <──WSS───   Supabase Realtime   <──  publication (postgres_changes)
-        └─ TanStack Query: evento de mudança → invalida cache → re-busca → UI ao vivo
-```
+
+O caminho de escrita e o de notificação são independentes: quem escreve não
+avisa os outros clientes — **o banco avisa**. Por isso qualquer origem de
+mudança (outro operador, SQL direto, seed) aparece ao vivo na interface.
 
 ## Rodar localmente
 
@@ -103,7 +122,9 @@ Com a [Supabase CLI](https://supabase.com/docs/guides/cli): `supabase link` +
 
 ---
 
-> Projeto pessoal de Leonardo Cavalcanti. O backend REST original em Express +
-> Sequelize permanece em
-> [zoonoses-inventory-api](https://github.com/LeonardoPCavalcanti/controle-estoque-zoonoses-api)
-> como referência; este demo ao vivo usa Supabase para o tempo real.
+> Projeto pessoal de Leonardo Cavalcanti. Este painel é a **2ª geração** do
+> sistema: a 1ª foi um full-stack clássico (Express + Sequelize + React,
+> containerizado) cujos repositórios — `zoonoses-inventory-system` e
+> `zoonoses-inventory-api` — são privados e ficam disponíveis sob solicitação.
+> A reescrita sobre Supabase trocou o servidor próprio por Postgres gerenciado
+> com Realtime e RLS, ganhando o tempo real multiusuário do demo.
