@@ -2,10 +2,17 @@ import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from './AuthProvider';
+import type { Capability } from './roles';
 
-/** Bloqueia rotas sem sessão; mostra loader enquanto resolve a sessão. */
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth();
+/** Bloqueia rotas sem sessão; opcionalmente exige uma capacidade. */
+export default function ProtectedRoute({
+  children,
+  requireCapability,
+}: {
+  children: ReactNode;
+  requireCapability?: Capability;
+}) {
+  const { session, loading, can } = useAuth();
 
   if (loading) {
     return (
@@ -15,5 +22,8 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
     );
   }
   if (!session) return <Navigate to="/login" replace />;
+  if (requireCapability && !can(requireCapability)) {
+    return <Navigate to="/" replace />;
+  }
   return <>{children}</>;
 }

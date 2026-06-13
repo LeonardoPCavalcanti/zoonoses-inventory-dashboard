@@ -15,6 +15,12 @@ import Movimentacoes from '@/pages/Movimentacoes';
 import Auditoria from '@/pages/Auditoria';
 import Cadastros from '@/pages/Cadastros';
 import NotFound from '@/pages/NotFound';
+import Cadastrar from '@/pages/Cadastrar';
+import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
+import EsqueciSenha from '@/pages/EsqueciSenha';
+import RedefinirSenha from '@/pages/RedefinirSenha';
+import AuthCallback from '@/pages/AuthCallback';
+import Conta from '@/pages/Conta';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -44,6 +50,12 @@ const App = () => (
               <Route path="/movimentacoes" element={<Protected><Movimentacoes /></Protected>} />
               <Route path="/auditoria" element={<Protected><Auditoria /></Protected>} />
               <Route path="/cadastros" element={<Protected><Cadastros /></Protected>} />
+              <Route path="/cadastrar" element={<Cadastrar />} />
+              <Route path="/aguardando-aprovacao" element={<AguardandoAprovacao />} />
+              <Route path="/esqueci-senha" element={<EsqueciSenha />} />
+              <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/conta" element={<Protected><Conta /></Protected>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>
