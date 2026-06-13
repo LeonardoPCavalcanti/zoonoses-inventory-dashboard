@@ -30,9 +30,12 @@ export default function Conta() {
   const [busyMfa, setBusyMfa] = useState(false);
 
   useEffect(() => {
-    supabase.auth.mfa.listFactors().then(({ data }) => {
-      setHasTotp(Boolean(data?.totp?.length));
-    });
+    supabase.auth.mfa
+      .listFactors()
+      .then(({ data }) => {
+        setHasTotp(Boolean(data?.totp?.length));
+      })
+      .catch(() => toast.error('Não foi possível verificar o status do 2FA.'));
   }, []);
 
   async function trocarSenha(e: React.FormEvent) {
@@ -91,10 +94,9 @@ export default function Conta() {
     try {
       const { data } = await supabase.auth.mfa.listFactors();
       const totp = data?.totp?.[0];
-      if (totp) {
-        const { error } = await supabase.auth.mfa.unenroll({ factorId: totp.id });
-        if (error) throw error;
-      }
+      if (!totp) throw new Error('Nenhum fator de 2FA encontrado.');
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: totp.id });
+      if (error) throw error;
       setHasTotp(false);
       toast.success('2FA desativado.');
     } catch (err) {
