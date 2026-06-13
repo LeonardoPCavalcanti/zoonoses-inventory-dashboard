@@ -145,7 +145,7 @@ export default function Login() {
           {mfa ? (
             <div className="space-y-5">
               <div className="flex justify-center">
-                <InputOTP maxLength={6} value={code} onChange={setCode}>
+                <InputOTP maxLength={6} value={code} onChange={setCode} aria-label="Código de autenticação de 6 dígitos">
                   <InputOTPGroup>
                     {[0, 1, 2, 3, 4, 5].map((i) => (
                       <InputOTPSlot key={i} index={i} />
