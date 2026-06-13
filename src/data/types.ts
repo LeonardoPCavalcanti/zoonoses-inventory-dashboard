@@ -16,6 +16,31 @@ export interface Profile {
   last_login_at: string | null;
 }
 
+/** Linha do painel admin (profiles + e-mail de auth.users via RPC). */
+export interface AdminUser {
+  id: string;
+  nome: string;
+  email: string;
+  role: Role | null;
+  status: UserStatus;
+  sector: string | null;
+  created_at: string;
+  last_login_at: string | null;
+}
+
+export interface UserAuditEntry {
+  id: string;
+  actor_id: string | null;
+  target_id: string | null;
+  action: string;
+  from_role: Role | null;
+  to_role: Role | null;
+  from_status: UserStatus | null;
+  to_status: UserStatus | null;
+  note: string | null;
+  created_at: string;
+}
+
 export interface Setor {
   id: string;
   nome: string;

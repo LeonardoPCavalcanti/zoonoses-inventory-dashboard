@@ -8,6 +8,7 @@ import {
   ArrowLeftRight,
   History,
   Settings2,
+  Users,
   Moon,
   Sun,
   LogOut,
@@ -15,21 +16,23 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/AuthProvider';
-import { ROLE_LABEL } from '@/auth/roles';
+import { ROLE_LABEL, type Capability } from '@/auth/roles';
 
-const nav = [
+const nav: { to: string; label: string; icon: typeof Users; end?: boolean; cap?: Capability }[] = [
   { to: '/', label: 'Visão geral', icon: LayoutDashboard, end: true },
   { to: '/produtos', label: 'Produtos', icon: Package },
   { to: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight },
   { to: '/auditoria', label: 'Auditoria', icon: History },
   { to: '/cadastros', label: 'Cadastros', icon: Settings2 },
+  { to: '/admin/usuarios', label: 'Usuários', icon: Users, cap: 'manage_users' },
 ];
 
 export default function AppShell({ children }: { children: ReactNode }) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
-  const titulo = nav.find((n) => (n.end ? n.to === location.pathname : location.pathname.startsWith(n.to)))
+  const visibleNav = nav.filter((n) => !n.cap || can(n.cap));
+  const titulo = visibleNav.find((n) => (n.end ? n.to === location.pathname : location.pathname.startsWith(n.to)))
     ?.label;
 
   return (
@@ -49,7 +52,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
 
         <nav className="flex-1 space-y-1 px-3 py-2">
-          {nav.map(({ to, label, icon: Icon, end }) => (
+          {visibleNav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

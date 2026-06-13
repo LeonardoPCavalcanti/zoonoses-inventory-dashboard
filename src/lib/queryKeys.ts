@@ -9,4 +9,6 @@ export const qk = {
   categorias: ['categorias'] as const,
   fornecedores: ['fornecedores'] as const,
   dashboard: ['dashboard'] as const,
+  adminUsers: ['admin-users'] as const,
+  userAudit: (id: string) => ['user-audit', id] as const,
 };
