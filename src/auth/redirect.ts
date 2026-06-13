@@ -4,7 +4,13 @@ export function buildRedirect(origin: string, base: string): string {
   return `${origin}${cleanBase}/#/auth/callback`;
 }
 
-/** Conveniência para o runtime do browser. */
-export function authRedirectUrl(): string {
-  return buildRedirect(window.location.origin, import.meta.env.BASE_URL);
+/**
+ * URL de retorno para o runtime do browser. Os argumentos têm default para o
+ * ambiente real, mas podem ser injetados em teste.
+ */
+export function authRedirectUrl(
+  origin: string = window.location.origin,
+  base: string = import.meta.env.BASE_URL,
+): string {
+  return buildRedirect(origin, base);
 }
