@@ -66,7 +66,7 @@ export default function Cadastrar() {
         <form className="space-y-4" onSubmit={submit}>
           <div className="space-y-1.5">
             <Label htmlFor="nome">Nome completo</Label>
-            <Input id="nome" value={nome} onChange={(e) => setNome(e.target.value)} required />
+            <Input id="nome" autoComplete="name" value={nome} onChange={(e) => setNome(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail institucional</Label>
