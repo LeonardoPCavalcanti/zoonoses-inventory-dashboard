@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Loader2, ShieldCheck, History, Users } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +22,7 @@ import { ROLE_LABEL, assignableRoles, type Role } from '@/auth/roles';
 import { canChangeRole, canChangeStatus } from '@/auth/userActions';
 import {
   useAdminUsers, useUserAudit, useApproveUser, useRejectUser,
-  useSetUserRole, useSetUserStatus,
+  useSetUserRole, useSetUserStatus, useCreateUser,
 } from '@/data/users';
 import type { AdminUser, UserStatus } from '@/data/types';
 
@@ -140,8 +141,13 @@ function UserTable({
 }: { users: AdminUser[]; actorRole: Role | null; actorId: string | null; activeAdmins: number }) {
   const setRole = useSetUserRole();
   const setStatus = useSetUserStatus();
+  const createUser = useCreateUser();
   const [q, setQ] = useState('');
   const [auditFor, setAuditFor] = useState<AdminUser | null>(null);
+  const [novo, setNovo] = useState(false);
+  const [form, setForm] = useState<{ nome: string; email: string; role: Role | ''; sector: string }>(
+    { nome: '', email: '', role: '', sector: '' });
+  const [linkGerado, setLinkGerado] = useState<string | null>(null);
 
   const filtered = useMemo(
     () => users.filter((u) =>
@@ -149,10 +155,19 @@ function UserTable({
     [users, q],
   );
 
+  function abrirNovo() {
+    setForm({ nome: '', email: '', role: '', sector: '' });
+    setLinkGerado(null);
+    setNovo(true);
+  }
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Todos os usuários</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-base">Todos os usuários</CardTitle>
+          <Button size="sm" onClick={abrirNovo}>Novo usuário</Button>
+        </div>
         <Input placeholder="Buscar por nome ou e-mail" value={q} onChange={(e) => setQ(e.target.value)} className="mt-2 max-w-xs" />
       </CardHeader>
       <CardContent className="divide-y p-0">
@@ -202,6 +217,59 @@ function UserTable({
       </CardContent>
 
       <AuditSheet user={auditFor} onClose={() => setAuditFor(null)} />
+
+      <Dialog open={novo} onOpenChange={(o) => !o && setNovo(false)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Novo usuário</DialogTitle></DialogHeader>
+          {linkGerado ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Usuário criado. Envie este link para a pessoa definir a senha:
+              </p>
+              <div className="flex items-center gap-2">
+                <Input readOnly value={linkGerado} className="text-xs" />
+                <Button size="sm" onClick={() => { void navigator.clipboard.writeText(linkGerado); toast.success('Link copiado'); }}>
+                  Copiar
+                </Button>
+              </div>
+              <DialogFooter><Button variant="ghost" onClick={() => setNovo(false)}>Fechar</Button></DialogFooter>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label>Nome</Label>
+                <Input value={form.nome} onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>E-mail</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Papel</Label>
+                <Select value={form.role} onValueChange={(v) => setForm((f) => ({ ...f, role: v as Role }))}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o papel" /></SelectTrigger>
+                  <SelectContent>
+                    {assignableRoles(actorRole).map((r) => <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Setor (opcional)</Label>
+                <Input value={form.sector} onChange={(e) => setForm((f) => ({ ...f, sector: e.target.value }))} />
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setNovo(false)}>Cancelar</Button>
+                <Button disabled={!form.nome || !form.email || !form.role || createUser.isPending}
+                  onClick={() => form.role && createUser.mutate(
+                    { nome: form.nome, email: form.email, role: form.role as Role, sector: form.sector || null },
+                    { onSuccess: (r) => setLinkGerado(r.link) })}>
+                  {createUser.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Criar'}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
