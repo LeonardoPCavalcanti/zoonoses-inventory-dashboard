@@ -1,13 +1,19 @@
 // Tipos do domínio — espelham o schema Postgres (supabase/migrations).
 
-export type Papel = 'admin' | 'operador';
+import type { Role } from '@/auth/roles';
+
+export type { Role };
+export type UserStatus = 'PENDING' | 'ACTIVE' | 'INACTIVE' | 'REJECTED';
 export type TipoMovimentacao = 'entrada' | 'saida' | 'ajuste';
 
 export interface Profile {
   id: string;
   nome: string;
-  papel: Papel;
+  role: Role | null;
+  status: UserStatus;
+  sector: string | null;
   created_at: string;
+  last_login_at: string | null;
 }
 
 export interface Setor {
