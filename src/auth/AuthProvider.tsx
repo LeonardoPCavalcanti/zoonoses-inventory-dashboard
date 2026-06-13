@@ -43,27 +43,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Carrega o profile sempre que a sessão muda; bloqueia contas não-ACTIVE.
+  // O guard `cancelled` evita setState/signOut tardios se a sessão mudar
+  // enquanto o fetch do profile ainda está em voo.
   useEffect(() => {
     const uid = session?.user.id;
     if (!uid) {
       setProfile(null);
       return;
     }
+    let cancelled = false;
     supabase
       .from('profiles')
       .select('*')
       .eq('id', uid)
       .single()
       .then(async ({ data }) => {
+        if (cancelled) return;
         const p = (data as Profile) ?? null;
         if (p && p.status !== 'ACTIVE') {
           setBlockedStatus(p.status);
           await supabase.auth.signOut();
-          setProfile(null);
+          if (!cancelled) setProfile(null);
           return;
         }
         setProfile(p);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [session?.user.id]);
 
   const signIn = async (email: string, password: string) => {
@@ -73,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    setBlockedStatus(null);
     await supabase.auth.signOut();
   };
 
