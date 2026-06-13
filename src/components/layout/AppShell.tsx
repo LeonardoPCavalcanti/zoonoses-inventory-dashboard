@@ -15,6 +15,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/AuthProvider';
+import { ROLE_LABEL } from '@/auth/roles';
 
 const nav = [
   { to: '/', label: 'Visão geral', icon: LayoutDashboard, end: true },
@@ -82,7 +83,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
           <p className="text-xs text-sidebar-foreground/55">
             {profile ? (
               <>
-                Sessão · <span className="capitalize text-sidebar-foreground/80">{profile.papel}</span>
+                Sessão · <span className="text-sidebar-foreground/80">{profile.role ? ROLE_LABEL[profile.role] : '—'}</span>
               </>
             ) : (
               'Carregando…'
