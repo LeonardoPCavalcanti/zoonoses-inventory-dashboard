@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/auth/AuthProvider';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/auth/demo';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
-import { STATUS_MESSAGE } from '@/auth/loginState';
+import { STATUS_MESSAGE, nextLoginStep, type AccountStatus } from '@/auth/loginState';
 
 export default function Login() {
   const { signIn, blockedStatus, clearBlocked } = useAuth();
@@ -23,9 +23,21 @@ export default function Login() {
   const [code, setCode] = useState('');
 
   async function afterPassword() {
-    // Se houver fator TOTP verificado e o nível exigido for aal2, desafia.
+    // Status primeiro: uma conta não-ACTIVE nunca deve sequer piscar o painel.
+    // O AuthProvider também bloqueia (banner + signOut); aqui só evitamos navegar.
+    const { data: status } = await supabase.rpc('my_account_status');
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal && aal.nextLevel === 'aal2' && aal.nextLevel !== aal.currentLevel) {
+    const step = nextLoginStep({
+      status: (status as AccountStatus | null) ?? 'PENDING',
+      currentLevel: aal?.currentLevel ?? null,
+      nextLevel: aal?.nextLevel ?? null,
+    });
+
+    if (step.step === 'blocked') {
+      // AuthProvider cuida do banner e do signOut; não navegamos.
+      return;
+    }
+    if (step.step === 'mfa_challenge') {
       const { data: factors } = await supabase.auth.mfa.listFactors();
       const totp = factors?.totp?.[0];
       if (totp) {
