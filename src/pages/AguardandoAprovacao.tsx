@@ -1,8 +1,16 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase';
 
 export default function AguardandoAprovacao() {
+  // O signUp deixa uma sessão ativa de uma conta PENDING. Encerramos aqui para
+  // não manter o usuário meio-autenticado enquanto aguarda aprovação.
+  useEffect(() => {
+    void supabase.auth.signOut();
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-md text-center animate-fade-up">
