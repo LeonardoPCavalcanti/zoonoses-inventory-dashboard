@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Boxes, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -65,6 +65,11 @@ export default function RedefinirSenha() {
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Redefinir senha'}
           </Button>
         </form>
+        <p className="mt-5 text-center text-sm text-muted-foreground">
+          <Link to="/login" className="text-primary underline-offset-4 hover:underline">
+            Voltar ao login
+          </Link>
+        </p>
       </div>
     </div>
   );

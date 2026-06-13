@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
@@ -37,9 +37,9 @@ export default function AuthCallback() {
       {erro ? (
         <div className="max-w-sm">
           <p className="text-sm text-destructive">{erro}</p>
-          <a href="#/login" className="mt-4 inline-block text-sm text-primary underline-offset-4 hover:underline">
+          <Link to="/login" className="mt-4 inline-block text-sm text-primary underline-offset-4 hover:underline">
             Voltar ao login
-          </a>
+          </Link>
         </div>
       ) : (
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
