@@ -15,5 +15,5 @@ if (!supabaseConfigured) {
 }
 
 export const supabase = createClient(url ?? 'http://localhost', anon ?? 'public-anon-key', {
-  auth: { persistSession: true, autoRefreshToken: true },
+  auth: { persistSession: true, autoRefreshToken: true, flowType: 'pkce' },
 });
