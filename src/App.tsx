@@ -7,6 +7,7 @@ import { Toaster as Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { AuthProvider } from '@/auth/AuthProvider';
 import ProtectedRoute from '@/auth/ProtectedRoute';
+import type { Capability } from '@/auth/roles';
 import AppShell from '@/components/layout/AppShell';
 import Login from '@/pages/Login';
 import Overview from '@/pages/Overview';
@@ -21,15 +22,16 @@ import EsqueciSenha from '@/pages/EsqueciSenha';
 import RedefinirSenha from '@/pages/RedefinirSenha';
 import AuthCallback from '@/pages/AuthCallback';
 import Conta from '@/pages/Conta';
+import UsuariosAdmin from '@/pages/UsuariosAdmin';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
 });
 
 /** Envolve as páginas internas com guarda de rota + shell (sidebar/topbar). */
-function Protected({ children }: { children: ReactNode }) {
+function Protected({ children, requireCapability }: { children: ReactNode; requireCapability?: Capability }) {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute requireCapability={requireCapability}>
       <AppShell>{children}</AppShell>
     </ProtectedRoute>
   );
@@ -56,6 +58,7 @@ const App = () => (
               <Route path="/redefinir-senha" element={<RedefinirSenha />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/conta" element={<Protected><Conta /></Protected>} />
+              <Route path="/admin/usuarios" element={<Protected requireCapability="manage_users"><UsuariosAdmin /></Protected>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>
