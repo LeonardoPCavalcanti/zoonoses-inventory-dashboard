@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { qk } from '@/lib/queryKeys';
+import { authRedirectUrl } from '@/auth/redirect';
 import type { Role } from '@/auth/roles';
 import type { AdminUser, UserAuditEntry } from './types';
 
@@ -73,4 +74,26 @@ export function useSetUserStatus() {
     ({ targetId, status }) => supabase.rpc('set_user_status', { target_id: targetId, new_status: status }),
     'Status atualizado',
   );
+}
+
+export interface CreateUserResult { ok: boolean; userId: string; link: string | null }
+
+/** Criação direta de usuário (Edge Function). Retorna o link de definição de senha. */
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (vars: { nome: string; email: string; role: Role; sector?: string | null }): Promise<CreateUserResult> => {
+      const { data, error } = await supabase.functions.invoke('admin-create-user', {
+        body: { ...vars, redirectTo: authRedirectUrl() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as CreateUserResult;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.adminUsers });
+      toast.success('Usuário criado');
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 }
