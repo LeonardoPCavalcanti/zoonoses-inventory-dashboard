@@ -6,6 +6,7 @@
 ![Supabase](https://img.shields.io/badge/Supabase-3FCF8E?logo=supabase&logoColor=white)
 ![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?logo=tailwindcss&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-green)
+[![Deploy to GitHub Pages](https://github.com/LeonardoPCavalcanti/zoonoses-inventory-dashboard/actions/workflows/deploy.yml/badge.svg)](https://github.com/LeonardoPCavalcanti/zoonoses-inventory-dashboard/actions/workflows/deploy.yml)
 
 Controle de estoque **multiusuário e em tempo real** para um centro de zoonoses
 (vacinas, soros, medicamentos, EPI, material de campo). Uma movimentação
@@ -56,6 +57,19 @@ dos seus lotes; os alertas de "vencendo em ≤30 dias" e "estoque baixo" saem de
 uma **view** agregada (`vw_estoque_produto`). Modelar o domínio real (e não um
 CRUD genérico) é o que torna o sistema de fato útil.
 
+### 5. Controle de acesso: papéis, aprovação e 2FA
+O acesso é um subsistema completo sobre o **Supabase Auth** (sem backend próprio):
+fluxo **PKCE**, **2FA TOTP** opcional por usuário e **RBAC de 5 papéis**
+(`ADMIN > FINANCIAL_MANAGER > STOCKIST > NUCLEUS_SUPERVISOR > AUDITOR`). O
+auto-cadastro nasce `PENDING` e só vira `ACTIVE` quando um admin aprova — a conta
+não acessa **nenhum** dado enquanto pendente. As mutações administrativas rodam em
+funções **`SECURITY DEFINER`** que *recarregam o papel do ator no banco* (nunca
+confiam em claims do cliente), aplicam a hierarquia, a regra do **último admin**
+(um trigger impede rebaixar/desativar o último `ADMIN` ativo) e a proibição de
+auto-edição; cada ação vai para uma tabela de **auditoria append-only**. A mesma
+lição da seção 3: **a autorização vive no banco**, a UI só a reflete. Detalhes de
+operação e segurança em [`docs/GESTAO-DE-USUARIOS.md`](docs/GESTAO-DE-USUARIOS.md).
+
 **Leituras de referência:**
 - Martin Kleppmann — *Designing Data-Intensive Applications* (estado, consistência, sistemas de dados confiáveis).
 - [Supabase Realtime — Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes).
@@ -73,11 +87,18 @@ CRUD genérico) é o que torna o sistema de fato útil.
 - **Auditoria:** feed cronológico de todas as ações, atualizado ao vivo.
 - **Cadastros:** setores, categorias e fornecedores (escrita restrita a admin).
 - **Alertas** de estoque baixo e validade próxima; **tema claro/escuro**.
+- **Autenticação & papéis:** login com **2FA (TOTP)**, recuperação de senha,
+  auto-cadastro com **aprovação por admin** e **RBAC de 5 papéis** com bloqueio por
+  status da conta.
+- **Gestão de usuários (admin):** painel de aprovação, troca de papel e ativação/
+  desativação, criação direta de usuário (link de definição de senha) e **auditoria
+  append-only** de cada ação — tudo validado no banco via RPC `SECURITY DEFINER`.
 
 ## Stack
 
 - **React 18 + Vite + TypeScript**, **Tailwind CSS** + **shadcn/ui**
-- **Supabase** — Postgres, Auth, **Realtime** e RLS (sem servidor próprio)
+- **Supabase** — Postgres, **Auth (PKCE + MFA TOTP)**, **Realtime**, RLS,
+  **Edge Functions** e **pg_cron** (sem servidor próprio)
 - **TanStack Query** (cache/sincronização), **Recharts**, **Sonner**
 - Deploy: **GitHub Pages** (SPA com HashRouter)
 
@@ -123,8 +144,10 @@ Com a [Supabase CLI](https://supabase.com/docs/guides/cli): `supabase link` +
 ---
 
 > Projeto pessoal de Leonardo Cavalcanti. Este painel é a **2ª geração** do
-> sistema: a 1ª foi um full-stack clássico (Express + Sequelize + React,
-> containerizado) cujos repositórios — `zoonoses-inventory-system` e
-> `zoonoses-inventory-api` — são privados e ficam disponíveis sob solicitação.
-> A reescrita sobre Supabase trocou o servidor próprio por Postgres gerenciado
-> com Realtime e RLS, ganhando o tempo real multiusuário do demo.
+> sistema: a 1ª foi um full-stack clássico (Express + Sequelize + JWT,
+> containerizado) cujos repositórios — `zoonoses-inventory-system` (índice, com
+> `docker compose up` que sobe backend + Postgres já populado) e
+> `zoonoses-inventory-api` (REST com CI completo + deploy) — são privados e ficam
+> disponíveis sob solicitação. A reescrita sobre Supabase trocou o servidor próprio
+> por Postgres gerenciado com **Realtime, RLS, Edge Functions e pg_cron**, ganhando
+> o tempo real multiusuário e o controle de acesso por papel do demo.
