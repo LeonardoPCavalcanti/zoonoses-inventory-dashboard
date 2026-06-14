@@ -89,7 +89,7 @@ export default function PedidoDetalhe() {
 
             {p.criticas.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold">Historico de criticas</h3>
+                <h3 className="mb-2 text-sm font-semibold">Histórico de críticas</h3>
                 <ol className="space-y-2">
                   {p.criticas.map((c) => (
                     <li key={c.id} className="rounded-md border bg-muted/30 p-3 text-sm">
@@ -106,7 +106,7 @@ export default function PedidoDetalhe() {
         </Card>
       </div>
 
-      {/* Coluna lateral: timeline + acoes */}
+      {/* Coluna lateral: timeline + ações */}
       <div className="space-y-4">
         <Card>
           <CardHeader><CardTitle className="text-base">Acompanhamento</CardTitle></CardHeader>
@@ -114,7 +114,7 @@ export default function PedidoDetalhe() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-base">Acoes</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-base">Ações</CardTitle></CardHeader>
           <CardContent className="space-y-2">
             {canAnalisar(role, p.status) && (
               <>
@@ -130,8 +130,8 @@ export default function PedidoDetalhe() {
 
                 <AcaoMotivo
                   rotulo="Criticar"
-                  titulo="Enviar critica"
-                  placeholder="Motivo da critica (obrigatorio)"
+                  titulo="Enviar crítica"
+                  placeholder="Motivo da crítica (obrigatório)"
                   motivo={motivo}
                   setMotivo={setMotivo}
                   pending={criticar.isPending}
@@ -140,7 +140,7 @@ export default function PedidoDetalhe() {
                 <AcaoMotivo
                   rotulo="Rejeitar"
                   titulo="Rejeitar pedido"
-                  placeholder="Motivo da rejeicao (obrigatorio)"
+                  placeholder="Motivo da rejeição (obrigatório)"
                   destructive
                   motivo={motivo}
                   setMotivo={setMotivo}
@@ -191,7 +191,7 @@ export default function PedidoDetalhe() {
             {p.status === 'ENVIADO' && (
               <p className="text-xs text-muted-foreground">
                 {remetenteJaConfirmou ? 'Remetente confirmou. ' : 'Aguardando remetente. '}
-                {destinatarioJaConfirmou ? 'Destinatario confirmou.' : 'Aguardando destinatario.'}
+                {destinatarioJaConfirmou ? 'Destinatário confirmou.' : 'Aguardando destinatário.'}
               </p>
             )}
           </CardContent>

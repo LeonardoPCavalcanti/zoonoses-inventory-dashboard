@@ -63,9 +63,9 @@ export default function NovoPedido() {
         <CardContent className="space-y-4">
           {isAdmin ? (
             <div className="space-y-1.5">
-              <Label>Nucleo solicitante</Label>
+              <Label>Núcleo solicitante</Label>
               <Select value={nucleoId} onValueChange={setNucleoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione o nucleo" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o núcleo" /></SelectTrigger>
                 <SelectContent>
                   {(nucleos.data ?? []).map((n) => (
                     <SelectItem key={n.id} value={n.id}>{n.nome}</SelectItem>
@@ -75,7 +75,7 @@ export default function NovoPedido() {
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              Nucleo: <span className="font-medium text-foreground">{profile?.sector ?? 'seu nucleo'}</span>
+              Núcleo: <span className="font-medium text-foreground">{profile?.sector ?? 'seu núcleo'}</span>
             </p>
           )}
 

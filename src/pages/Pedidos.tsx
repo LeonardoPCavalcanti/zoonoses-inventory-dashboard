@@ -37,7 +37,7 @@ export default function Pedidos() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Buscar por codigo"
+            placeholder="Buscar por código"
             className="w-48"
             value={filtros.busca ?? ''}
             onChange={(e) => setFiltros((f) => ({ ...f, busca: e.target.value || undefined }))}
@@ -52,9 +52,9 @@ export default function Pedidos() {
             </SelectContent>
           </Select>
           <Select value={filtros.nucleoId ?? 'all'} onValueChange={(v) => setFiltros((f) => ({ ...f, nucleoId: v === 'all' ? undefined : v }))}>
-            <SelectTrigger className="w-44"><SelectValue placeholder="Nucleo" /></SelectTrigger>
+            <SelectTrigger className="w-44"><SelectValue placeholder="Núcleo" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os nucleos</SelectItem>
+              <SelectItem value="all">Todos os núcleos</SelectItem>
               {(nucleos.data ?? []).map((n) => (
                 <SelectItem key={n.id} value={n.id}>{n.nome}</SelectItem>
               ))}
