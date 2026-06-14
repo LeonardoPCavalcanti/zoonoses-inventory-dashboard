@@ -18,11 +18,11 @@ language plpgsql security definer set search_path = public as $$
 declare actor uuid := auth.uid(); actor_role user_role; nucleo uuid; novo_id uuid; novo_codigo text; item jsonb;
 begin
   if actor is null then raise exception 'Não autenticado'; end if;
-  select role into actor_role from profiles where id = actor;
+  select role into actor_role from profiles where profiles.id = actor;
   if actor_role not in ('NUCLEUS_SUPERVISOR','ADMIN') then
     raise exception 'Apenas supervisores de núcleo podem criar pedidos';
   end if;
-  nucleo := coalesce(p_nucleo_id, (select nucleo_id from profiles where id = actor));
+  nucleo := coalesce(p_nucleo_id, (select nucleo_id from profiles where profiles.id = actor));
   if nucleo is null then raise exception 'Usuário sem núcleo vinculado'; end if;
   if p_justificativa is null or length(trim(p_justificativa)) = 0 then
     raise exception 'Justificativa é obrigatória';
