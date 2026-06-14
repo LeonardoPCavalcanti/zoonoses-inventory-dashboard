@@ -12,6 +12,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ const nav: { to: string; label: string; icon: typeof Users; end?: boolean; cap?:
   { to: '/', label: 'Visão geral', icon: LayoutDashboard, end: true },
   { to: '/produtos', label: 'Produtos', icon: Package },
   { to: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight },
+  { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
   { to: '/auditoria', label: 'Auditoria', icon: History },
   { to: '/cadastros', label: 'Cadastros', icon: Settings2 },
   { to: '/admin/usuarios', label: 'Usuários', icon: Users, cap: 'manage_users' },
