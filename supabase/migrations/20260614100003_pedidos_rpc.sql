@@ -3,12 +3,12 @@
 -- Gera o próximo código PED-AAAA-NNNN sob lock da linha do ano.
 create or replace function proximo_codigo_pedido() returns text
 language plpgsql security definer set search_path = public as $$
-declare ano int := extract(year from now())::int; n int;
+declare v_ano int := extract(year from now())::int; n int;
 begin
-  insert into pedido_sequencia(ano, ultimo) values (ano, 1)
+  insert into pedido_sequencia(ano, ultimo) values (v_ano, 1)
     on conflict (ano) do update set ultimo = pedido_sequencia.ultimo + 1
     returning ultimo into n;
-  return 'PED-' || ano || '-' || lpad(n::text, 4, '0');
+  return 'PED-' || v_ano || '-' || lpad(n::text, 4, '0');
 end; $$;
 
 -- criar_pedido: núcleo solicita; itens = jsonb [{produto_id, quantidade}].
@@ -161,7 +161,7 @@ begin
       select 1 from pedido_itens where pedido_id = p_id
         and coalesce(qtd_recebida, 0) < coalesce(qtd_aprovada, qtd_solicitada)
     ) into parcial;
-    update pedidos set status = case when parcial then 'CONCLUIDO_PARCIAL' else 'CONCLUIDO' end,
+    update pedidos set status = (case when parcial then 'CONCLUIDO_PARCIAL' else 'CONCLUIDO' end)::pedido_status,
       updated_at = now() where id = p_id;
     insert into pedido_eventos(pedido_id, tipo, ator_id, dados)
       values (p_id, 'CONCLUIDO', actor, jsonb_build_object('parcial', parcial));
