@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Boxes, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { validatePassword } from '@/auth/password';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export default function Cadastrar() {
   const navigate = useNavigate();
@@ -45,12 +46,9 @@ export default function Cadastrar() {
   }
 
   return (
-    <div className="has-aura flex min-h-screen flex-col items-center justify-center bg-background p-6">
+    <AuthLayout>
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-7">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Boxes className="h-6 w-6" />
-          </div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Criar conta</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Solicite acesso ao painel. Um administrador aprovará seu cadastro.
@@ -96,6 +94,6 @@ export default function Cadastrar() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
