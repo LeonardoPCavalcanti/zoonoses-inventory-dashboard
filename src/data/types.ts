@@ -12,6 +12,7 @@ export interface Profile {
   role: Role | null;
   status: UserStatus;
   sector: string | null;
+  nucleo_id: string | null;
   created_at: string;
   last_login_at: string | null;
 }
@@ -111,4 +112,72 @@ export interface EstoqueProduto {
   estoque_total: number;
   estoque_baixo: boolean;
   proxima_validade: string | null;
+}
+
+export type PedidoStatus =
+  | 'AGUARDANDO_ANALISE' | 'EM_REVISAO' | 'APROVADO' | 'REJEITADO'
+  | 'ENVIADO' | 'CONCLUIDO' | 'CONCLUIDO_PARCIAL';
+export type DocumentoTipo = 'ORIGINAL' | 'APROVADO';
+export type PedidoEventoTipo =
+  | 'CRIADO' | 'CRITICADO' | 'RESUBMETIDO' | 'APROVADO' | 'REJEITADO'
+  | 'ENVIADO' | 'ENTREGA_CONFIRMADA' | 'CONCLUIDO';
+
+export interface Nucleo {
+  id: string;
+  nome: string;
+  codigo: string;
+  created_at: string;
+}
+
+export interface PedidoItem {
+  id: string;
+  pedido_id: string;
+  produto_id: string;
+  qtd_solicitada: number;
+  qtd_aprovada: number | null;
+  qtd_recebida: number | null;
+  produto?: Pick<Produto, 'id' | 'nome' | 'unidade'> | null;
+}
+
+export interface PedidoCritica {
+  id: string;
+  pedido_id: string;
+  autor_id: string | null;
+  motivo: string;
+  created_at: string;
+  autor?: Pick<Profile, 'id' | 'nome'> | null;
+}
+
+export interface PedidoEvento {
+  id: string;
+  pedido_id: string;
+  tipo: PedidoEventoTipo;
+  ator_id: string | null;
+  dados: Record<string, unknown> | null;
+  created_at: string;
+  ator?: Pick<Profile, 'id' | 'nome'> | null;
+}
+
+export interface Pedido {
+  id: string;
+  codigo: string;
+  status: PedidoStatus;
+  justificativa: string;
+  nucleo_id: string;
+  solicitante_id: string | null;
+  analista_id: string | null;
+  analisado_em: string | null;
+  devolvido_em: string | null;
+  enviado_por: string | null;
+  enviado_em: string | null;
+  entrega_remetente_por: string | null;
+  entrega_remetente_em: string | null;
+  entrega_destinatario_por: string | null;
+  entrega_destinatario_em: string | null;
+  created_at: string;
+  updated_at: string;
+  // joins opcionais
+  nucleo?: Pick<Nucleo, 'id' | 'nome' | 'codigo'> | null;
+  solicitante?: Pick<Profile, 'id' | 'nome'> | null;
+  itens?: PedidoItem[];
 }

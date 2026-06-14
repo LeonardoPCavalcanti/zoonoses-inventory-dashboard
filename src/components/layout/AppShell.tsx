@@ -12,16 +12,19 @@ import {
   Moon,
   Sun,
   LogOut,
+  ClipboardList,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/auth/AuthProvider';
 import { ROLE_LABEL, type Capability } from '@/auth/roles';
+import { useContadoresPedidos } from '@/data/pedidos';
 
 const nav: { to: string; label: string; icon: typeof Users; end?: boolean; cap?: Capability }[] = [
   { to: '/', label: 'Visão geral', icon: LayoutDashboard, end: true },
   { to: '/produtos', label: 'Produtos', icon: Package },
   { to: '/movimentacoes', label: 'Movimentações', icon: ArrowLeftRight },
+  { to: '/pedidos', label: 'Pedidos', icon: ClipboardList },
   { to: '/auditoria', label: 'Auditoria', icon: History },
   { to: '/cadastros', label: 'Cadastros', icon: Settings2 },
   { to: '/admin/usuarios', label: 'Usuários', icon: Users, cap: 'manage_users' },
@@ -31,6 +34,13 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const { profile, signOut, can } = useAuth();
   const { theme, setTheme } = useTheme();
   const location = useLocation();
+  const contadores = useContadoresPedidos();
+  const badgePedidos =
+    profile?.role === 'STOCKIST'
+      ? contadores.data?.enviado
+      : profile?.role === 'ADMIN' || profile?.role === 'FINANCIAL_MANAGER'
+        ? contadores.data?.aguardando
+        : undefined;
   const visibleNav = nav.filter((n) => !n.cap || can(n.cap));
   const titulo = visibleNav.find((n) => (n.end ? n.to === location.pathname : location.pathname.startsWith(n.to)))
     ?.label;
@@ -76,6 +86,11 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   />
                   <Icon className="h-[1.05rem] w-[1.05rem]" />
                   {label}
+                  {to === '/pedidos' && !!badgePedidos && (
+                    <span className="ml-auto rounded-full bg-sidebar-primary px-1.5 py-0.5 text-[0.65rem] font-semibold text-sidebar-primary-foreground">
+                      {badgePedidos}
+                    </span>
+                  )}
                 </>
               )}
             </NavLink>

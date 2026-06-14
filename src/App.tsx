@@ -23,6 +23,9 @@ import RedefinirSenha from '@/pages/RedefinirSenha';
 import AuthCallback from '@/pages/AuthCallback';
 import Conta from '@/pages/Conta';
 import UsuariosAdmin from '@/pages/UsuariosAdmin';
+import Pedidos from '@/pages/Pedidos';
+import NovoPedido from '@/pages/NovoPedido';
+import PedidoDetalhe from '@/pages/PedidoDetalhe';
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -59,6 +62,9 @@ const App = () => (
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/conta" element={<Protected><Conta /></Protected>} />
               <Route path="/admin/usuarios" element={<Protected requireCapability="manage_users"><UsuariosAdmin /></Protected>} />
+              <Route path="/pedidos" element={<Protected><Pedidos /></Protected>} />
+              <Route path="/pedidos/novo" element={<Protected><NovoPedido /></Protected>} />
+              <Route path="/pedidos/:id" element={<Protected><PedidoDetalhe /></Protected>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>

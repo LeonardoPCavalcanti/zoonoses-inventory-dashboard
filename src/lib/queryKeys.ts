@@ -11,4 +11,8 @@ export const qk = {
   dashboard: ['dashboard'] as const,
   adminUsers: ['admin-users'] as const,
   userAudit: (id: string) => ['user-audit', id] as const,
+  nucleos: ['nucleos'] as const,
+  pedidos: ['pedidos'] as const,
+  pedido: (id: string) => ['pedido', id] as const,
+  pedidoContadores: ['pedido-contadores'] as const,
 };
