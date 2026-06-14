@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Boxes, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { validatePassword } from '@/auth/password';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export default function RedefinirSenha() {
   const navigate = useNavigate();
@@ -40,12 +41,9 @@ export default function RedefinirSenha() {
   }
 
   return (
-    <div className="has-aura flex min-h-screen flex-col items-center justify-center bg-background p-6">
+    <AuthLayout>
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-7">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Boxes className="h-6 w-6" />
-          </div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Definir nova senha</h1>
           <p className="mt-1 text-sm text-muted-foreground">Escolha uma senha forte.</p>
         </div>
@@ -71,6 +69,6 @@ export default function RedefinirSenha() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

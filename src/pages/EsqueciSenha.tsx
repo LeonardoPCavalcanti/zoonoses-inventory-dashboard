@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Boxes, Loader2, MailCheck } from 'lucide-react';
+import { Loader2, MailCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase';
 import { authRedirectUrl } from '@/auth/redirect';
+import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export default function EsqueciSenha() {
   const [email, setEmail] = useState('');
@@ -31,7 +32,7 @@ export default function EsqueciSenha() {
 
   if (sent) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background p-6">
+      <AuthLayout>
         <div className="w-full max-w-md text-center animate-fade-up">
           <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
             <MailCheck className="h-7 w-7" />
@@ -45,17 +46,14 @@ export default function EsqueciSenha() {
             <Link to="/login">Voltar ao login</Link>
           </Button>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="has-aura flex min-h-screen flex-col items-center justify-center bg-background p-6">
+    <AuthLayout>
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-7">
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
-            <Boxes className="h-6 w-6" />
-          </div>
           <h1 className="font-display text-2xl font-semibold tracking-tight">Esqueci minha senha</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Informe seu e-mail e enviaremos um link de redefinição.
@@ -77,6 +75,6 @@ export default function EsqueciSenha() {
           </Link>
         </p>
       </div>
-    </div>
+    </AuthLayout>
   );
 }
