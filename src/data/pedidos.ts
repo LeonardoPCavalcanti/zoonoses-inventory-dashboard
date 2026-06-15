@@ -2,7 +2,10 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { qk } from '@/lib/queryKeys';
-import type { Pedido, PedidoCritica, PedidoEvento, PedidoItem } from './types';
+import { storagePath } from '@/pedidos/documentos';
+import type { Pedido, PedidoCritica, PedidoDocumento, PedidoEvento, PedidoItem } from './types';
+
+const BUCKET = 'pedidos-documentos';
 
 const LIST_SELECT =
   '*, nucleo:nucleos(id,nome,codigo), solicitante:profiles!pedidos_solicitante_id_fkey(id,nome), itens:pedido_itens(*, produto:produtos(id,nome,unidade))';
@@ -33,6 +36,7 @@ export interface PedidoDetalhe extends Pedido {
   itens: PedidoItem[];
   criticas: PedidoCritica[];
   eventos: PedidoEvento[];
+  documentos: PedidoDocumento[];
 }
 
 /** Detalhe completo (itens + críticas + eventos). */
@@ -44,7 +48,7 @@ export function usePedido(id: string | undefined) {
       const { data, error } = await supabase
         .from('pedidos')
         .select(
-          `${LIST_SELECT}, criticas:pedido_criticas(*, autor:profiles(id,nome)), eventos:pedido_eventos(*, ator:profiles(id,nome))`,
+          `${LIST_SELECT}, criticas:pedido_criticas(*, autor:profiles(id,nome)), eventos:pedido_eventos(*, ator:profiles(id,nome)), documentos:pedido_documentos(*)`,
         )
         .eq('id', id!)
         .single();
@@ -141,5 +145,71 @@ export function useContadoresPedidos() {
       const [aguardando, enviado] = await Promise.all([count('AGUARDANDO_ANALISE'), count('ENVIADO')]);
       return { aguardando, enviado };
     },
+  });
+}
+
+/** Sobe o documento ORIGINAL e registra na tabela (após criar o pedido). */
+export function useUploadDocumento() {
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async ({ pedidoId, file }: { pedidoId: string; file: File }) => {
+      const path = storagePath(pedidoId, 'original', file.name);
+      const up = await supabase.storage.from(BUCKET).upload(path, file, { upsert: true });
+      if (up.error) throw up.error;
+      const { error } = await supabase.rpc('registrar_documento', {
+        p_pedido_id: pedidoId,
+        p_storage_path: path,
+        p_filename: file.name,
+      });
+      if (error) throw error;
+      return path;
+    },
+    onSuccess: () => invalidate(),
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+/** URL assinada (1 h) para visualizar/baixar um documento privado. */
+export function useDocumentoUrl(storagePathValue: string | undefined) {
+  return useQuery({
+    queryKey: ['documento-url', storagePathValue],
+    enabled: !!storagePathValue,
+    staleTime: 50 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePathValue!, 3600);
+      if (error) throw error;
+      return data.signedUrl;
+    },
+  });
+}
+
+/** Chama a Edge Function que carimba o PDF e finaliza a aprovação. */
+export function useAssinarPedido() {
+  const qc = useQueryClient();
+  const invalidate = useInvalidate();
+  return useMutation({
+    mutationFn: async (args: {
+      pedidoId: string;
+      assinaturaPng: string;
+      itensAprovados: { item_id: string; qtd: number }[];
+      comentario: string | null;
+    }) => {
+      const { data, error } = await supabase.functions.invoke('assinar-pedido', {
+        body: {
+          pedido_id: args.pedidoId,
+          assinatura_png: args.assinaturaPng,
+          itens_aprovados: args.itensAprovados,
+          comentario: args.comentario,
+        },
+      });
+      if (error) throw error;
+      return data as { ok: boolean };
+    },
+    onSuccess: (_d, args) => {
+      invalidate();
+      qc.invalidateQueries({ queryKey: qk.pedido(args.pedidoId) });
+      toast.success('Pedido aprovado e assinado');
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 }

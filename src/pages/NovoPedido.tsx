@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { useProdutos } from '@/data/produtos';
 import { useNucleos } from '@/data/nucleos';
-import { useCriarPedido } from '@/data/pedidos';
+import { useCriarPedido, useUploadDocumento } from '@/data/pedidos';
 import { useAuth } from '@/auth/AuthProvider';
 
 interface LinhaItem {
@@ -25,10 +25,12 @@ export default function NovoPedido() {
   const produtos = useProdutos();
   const nucleos = useNucleos();
   const criar = useCriarPedido();
+  const upload = useUploadDocumento();
 
   const [justificativa, setJustificativa] = useState('');
   const [nucleoId, setNucleoId] = useState('');
   const [itens, setItens] = useState<LinhaItem[]>([{ produto_id: '', quantidade: '' }]);
+  const [arquivo, setArquivo] = useState<File | null>(null);
 
   const isAdmin = role === 'ADMIN';
 
@@ -40,7 +42,9 @@ export default function NovoPedido() {
     .filter((it) => it.produto_id && Number(it.quantidade) > 0)
     .map((it) => ({ produto_id: it.produto_id, quantidade: Number(it.quantidade) }));
 
-  const podeSalvar = justificativa.trim().length > 0 && itensValidos.length > 0 && (!isAdmin || !!nucleoId);
+  const docOk = isAdmin || !!arquivo;
+  const podeSalvar =
+    justificativa.trim().length > 0 && itensValidos.length > 0 && (!isAdmin || !!nucleoId) && docOk;
 
   async function submit() {
     try {
@@ -50,6 +54,7 @@ export default function NovoPedido() {
         nucleo_id: isAdmin ? nucleoId : undefined,
       });
       const novoId = rows?.[0]?.id;
+      if (novoId && arquivo) await upload.mutateAsync({ pedidoId: novoId, file: arquivo });
       navigate(novoId ? `/pedidos/${novoId}` : '/pedidos');
     } catch {
       /* toast tratado no hook */
@@ -123,9 +128,21 @@ export default function NovoPedido() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label>Documento comprobatório{isAdmin ? ' (opcional)' : ''}</Label>
+            <Input
+              type="file"
+              accept="application/pdf,image/*"
+              onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
+            />
+            <p className="text-xs text-muted-foreground">
+              PDF ou imagem. Anexe o ofício/justificativa formal.
+            </p>
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => navigate('/pedidos')}>Cancelar</Button>
-            <Button onClick={() => void submit()} disabled={!podeSalvar || criar.isPending}>
+            <Button onClick={() => void submit()} disabled={!podeSalvar || criar.isPending || upload.isPending}>
               Criar pedido
             </Button>
           </div>

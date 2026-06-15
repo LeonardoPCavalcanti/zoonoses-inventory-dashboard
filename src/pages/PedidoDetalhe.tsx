@@ -12,13 +12,16 @@ import { ErrorState } from '@/components/shared/states';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PedidoStatusBadge } from '@/components/pedidos/PedidoStatusBadge';
 import { PedidoTimeline } from '@/components/pedidos/PedidoTimeline';
+import { DocumentosPedido } from '@/components/pedidos/DocumentosPedido';
+import { AssinarDialog } from '@/components/pedidos/AssinarDialog';
 import {
-  usePedido, useCriticar, useRejeitar, useAprovar,
+  usePedido, useCriticar, useRejeitar,
   useDespachar, useConfirmarEntrega, useConfirmarRecebimento, useResubmeter,
 } from '@/data/pedidos';
 import {
   canAnalisar, canDespachar, canConfirmarRemetente, canConfirmarDestinatario,
 } from '@/pedidos/flow';
+import { canAssinar } from '@/pedidos/documentos';
 import { useAuth } from '@/auth/AuthProvider';
 import { useRealtime } from '@/hooks/useRealtime';
 import { qk } from '@/lib/queryKeys';
@@ -35,7 +38,6 @@ export default function PedidoDetalhe() {
 
   const criticar = useCriticar();
   const rejeitar = useRejeitar();
-  const aprovar = useAprovar();
   const despachar = useDespachar();
   const confirmarEntrega = useConfirmarEntrega();
   const confirmarRecebimento = useConfirmarRecebimento();
@@ -87,6 +89,11 @@ export default function PedidoDetalhe() {
               <p className="text-sm text-muted-foreground">{p.justificativa}</p>
             </div>
 
+            <div>
+              <h3 className="mb-2 text-sm font-semibold">Documentos</h3>
+              <DocumentosPedido documentos={p.documentos ?? []} />
+            </div>
+
             {p.criticas.length > 0 && (
               <div>
                 <h3 className="mb-2 text-sm font-semibold">Histórico de críticas</h3>
@@ -116,18 +123,16 @@ export default function PedidoDetalhe() {
         <Card>
           <CardHeader><CardTitle className="text-base">Ações</CardTitle></CardHeader>
           <CardContent className="space-y-2">
+            {canAssinar(role, p.status) && (
+              <AssinarDialog
+                pedidoId={p.id}
+                itens={p.itens}
+                original={p.documentos?.find((d) => d.tipo === 'ORIGINAL')}
+              />
+            )}
+
             {canAnalisar(role, p.status) && (
               <>
-                <Button
-                  className="w-full"
-                  disabled={aprovar.isPending}
-                  onClick={() =>
-                    void aprovar.mutateAsync({ id: p.id, p_itens_aprovados: [], p_comentario: null })
-                  }
-                >
-                  Aprovar
-                </Button>
-
                 <AcaoMotivo
                   rotulo="Criticar"
                   titulo="Enviar crítica"
