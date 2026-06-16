@@ -5,43 +5,42 @@ import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { supabase, supabaseConfigured } from '@/lib/supabase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { supabaseConfigured } from '@/lib/supabase';
 import { validatePassword } from '@/auth/password';
+import { soDigitos, validarCpf, formatarCpf, validarTelefoneBR, formatarTelefone } from '@/auth/identidade';
+import { useCadastrar, useNucleosParaCadastro } from '@/data/users';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export default function Cadastrar() {
   const navigate = useNavigate();
+  const cadastrar = useCadastrar();
+  const nucleos = useNucleosParaCadastro();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [nucleoId, setNucleoId] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
-  const [busy, setBusy] = useState(false);
+
+  const cpfOk = validarCpf(cpf);
+  const telOk = validarTelefoneBR(telefone);
+  const pwdOk = validatePassword(password).ok;
+  const podeEnviar = nome.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)
+    && cpfOk && telOk && nucleoId && pwdOk && password === confirm;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const check = validatePassword(password);
-    if (!check.ok) {
-      toast.error(check.errors[0]);
-      return;
-    }
-    if (password !== confirm) {
-      toast.error('As senhas não coincidem.');
-      return;
-    }
-    setBusy(true);
+    if (!validatePassword(password).ok) { toast.error(validatePassword(password).errors[0]); return; }
+    if (password !== confirm) { toast.error('As senhas não coincidem.'); return; }
     try {
-      // Conta nasce PENDING: status/role são atribuídos na aprovação (Fase 2).
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { nome } },
+      await cadastrar.mutateAsync({
+        nome, email, senha: password, cpf: soDigitos(cpf), telefone: soDigitos(telefone), nucleo_id: nucleoId,
       });
-      if (error) throw error;
       navigate('/aguardando-aprovacao', { replace: true });
     } catch (err) {
       toast.error((err as Error).message || 'Falha ao cadastrar');
-    } finally {
-      setBusy(false);
     }
   }
 
@@ -72,6 +71,27 @@ export default function Cadastrar() {
               onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="telefone">Telefone</Label>
+            <Input id="telefone" inputMode="numeric" placeholder="(00) 90000-0000"
+              value={formatarTelefone(telefone)} onChange={(e) => setTelefone(soDigitos(e.target.value))} required />
+            {telefone && !telOk && <p className="text-xs text-destructive">Telefone inválido.</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="cpf">CPF</Label>
+            <Input id="cpf" inputMode="numeric" placeholder="000.000.000-00"
+              value={formatarCpf(cpf)} onChange={(e) => setCpf(soDigitos(e.target.value))} required />
+            {cpf && !cpfOk && <p className="text-xs text-destructive">CPF inválido.</p>}
+          </div>
+          <div className="space-y-1.5">
+            <Label>Núcleo</Label>
+            <Select value={nucleoId} onValueChange={setNucleoId}>
+              <SelectTrigger><SelectValue placeholder="Selecione seu núcleo" /></SelectTrigger>
+              <SelectContent>
+                {(nucleos.data ?? []).map((n) => <SelectItem key={n.id} value={n.id}>{n.nome}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="password">Senha</Label>
             <Input id="password" type="password" autoComplete="new-password" value={password}
               onChange={(e) => setPassword(e.target.value)} required />
@@ -82,16 +102,14 @@ export default function Cadastrar() {
             <Input id="confirm" type="password" autoComplete="new-password" value={confirm}
               onChange={(e) => setConfirm(e.target.value)} required />
           </div>
-          <Button type="submit" className="w-full" disabled={busy}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Solicitar acesso'}
+          <Button type="submit" className="w-full" disabled={!podeEnviar || cadastrar.isPending}>
+            {cadastrar.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Solicitar acesso'}
           </Button>
         </form>
 
         <p className="mt-5 text-center text-sm text-muted-foreground">
           Já tem conta?{' '}
-          <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-            Entrar
-          </Link>
+          <Link to="/login" className="text-primary underline-offset-4 hover:underline">Entrar</Link>
         </p>
       </div>
     </AuthLayout>

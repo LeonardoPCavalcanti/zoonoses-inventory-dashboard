@@ -97,3 +97,78 @@ export function useCreateUser() {
     onError: (e: Error) => toast.error(e.message),
   });
 }
+
+export interface NucleoOpcao { id: string; nome: string }
+
+/** Núcleos para o dropdown do cadastro (RPC pública). */
+export function useNucleosParaCadastro() {
+  return useQuery({
+    queryKey: ['nucleos-cadastro'],
+    queryFn: async (): Promise<NucleoOpcao[]> => {
+      const { data, error } = await supabase.rpc('nucleos_para_cadastro');
+      if (error) throw error;
+      return (data ?? []) as NucleoOpcao[];
+    },
+  });
+}
+
+export interface CadastroInput {
+  nome: string; email: string; senha: string; cpf: string; telefone: string; nucleo_id: string;
+}
+
+/** Cadastro público via Edge Function (valida + unicidade + cria conta PENDING). */
+export function useCadastrar() {
+  return useMutation({
+    mutationFn: async (vars: CadastroInput) => {
+      const { data, error } = await supabase.functions.invoke('cadastrar', { body: vars });
+      if (error) {
+        // Erros 4xx da função vêm em error.context (FunctionsHttpError).
+        const ctx = (error as { context?: Response }).context;
+        if (ctx) { const j = await ctx.json().catch(() => null); if (j?.error) throw new Error(j.error); }
+        throw error;
+      }
+      if (data?.error) throw new Error(data.error);
+      return data as { ok: boolean };
+    },
+  });
+}
+
+/** Contato do próprio usuário (cpf/telefone via RPC, pois a coluna é revogada). */
+export function useMeuContato() {
+  return useQuery({
+    queryKey: ['meu-contato'],
+    queryFn: async (): Promise<{ cpf: string | null; telefone: string | null }> => {
+      const { data, error } = await supabase.rpc('meu_contato');
+      if (error) throw error;
+      return (data?.[0] ?? { cpf: null, telefone: null });
+    },
+  });
+}
+
+/** Troca o telefone do próprio usuário. */
+export function useAtualizarTelefone() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (telefone: string) => {
+      const { error } = await supabase.rpc('atualizar_meu_telefone', { p_telefone: telefone });
+      if (error) throw error;
+    },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['meu-contato'] }); toast.success('Telefone atualizado'); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+/** Admin gera link de redefinição de senha de um usuário. */
+export function useRedefinirSenha() {
+  return useMutation({
+    mutationFn: async (targetId: string): Promise<{ link: string | null }> => {
+      const { data, error } = await supabase.functions.invoke('admin-redefinir-senha', {
+        body: { target_id: targetId, redirectTo: authRedirectUrl() },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return data as { link: string | null };
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}

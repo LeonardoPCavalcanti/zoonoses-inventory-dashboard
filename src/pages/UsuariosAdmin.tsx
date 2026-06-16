@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import { Loader2, ShieldCheck, History, Users } from 'lucide-react';
+import { Loader2, ShieldCheck, History, Users, KeyRound } from 'lucide-react';
+import { formatarCpf, formatarTelefone } from '@/auth/identidade';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import { ROLE_LABEL, assignableRoles, type Role } from '@/auth/roles';
 import { canChangeRole, canChangeStatus } from '@/auth/userActions';
 import {
   useAdminUsers, useUserAudit, useApproveUser, useRejectUser,
-  useSetUserRole, useSetUserStatus, useCreateUser,
+  useSetUserRole, useSetUserStatus, useCreateUser, useRedefinirSenha,
 } from '@/data/users';
 import type { AdminUser, UserStatus } from '@/data/types';
 
@@ -142,6 +143,8 @@ function UserTable({
   const setRole = useSetUserRole();
   const setStatus = useSetUserStatus();
   const createUser = useCreateUser();
+  const redefinir = useRedefinirSenha();
+  const [linkSenha, setLinkSenha] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const [auditFor, setAuditFor] = useState<AdminUser | null>(null);
   const [novo, setNovo] = useState(false);
@@ -186,6 +189,10 @@ function UserTable({
                   {u.role === 'ADMIN' && <ShieldCheck className="h-3.5 w-3.5 text-primary" />}
                 </p>
                 <p className="truncate text-sm text-muted-foreground">{u.email}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {[u.telefone && formatarTelefone(u.telefone), u.cpf && formatarCpf(u.cpf), u.nucleo_nome]
+                    .filter(Boolean).join(' · ') || '—'}
+                </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Badge className={STATUS_BADGE[u.status]} variant="secondary">{STATUS_LABEL[u.status]}</Badge>
@@ -209,12 +216,30 @@ function UserTable({
                 <Button size="sm" variant="ghost" onClick={() => setAuditFor(u)} aria-label="Ver auditoria">
                   <History className="h-4 w-4" />
                 </Button>
+                <Button size="sm" variant="ghost" aria-label="Redefinir senha" disabled={redefinir.isPending}
+                  onClick={() => redefinir.mutate(u.id, { onSuccess: (r) => setLinkSenha(r.link) })}>
+                  <KeyRound className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           );
         })}
         {!filtered.length && <div className="p-6 text-center text-sm text-muted-foreground">Nenhum usuário encontrado.</div>}
       </CardContent>
+
+      <Dialog open={!!linkSenha} onOpenChange={(o) => !o && setLinkSenha(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Link de redefinição de senha</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">Envie este link para o usuário definir uma nova senha:</p>
+          <div className="flex items-center gap-2">
+            <Input readOnly value={linkSenha ?? ''} className="text-xs" />
+            <Button size="sm" onClick={() => { if (linkSenha) { void navigator.clipboard.writeText(linkSenha); toast.success('Link copiado'); } }}>
+              Copiar
+            </Button>
+          </div>
+          <DialogFooter><Button variant="ghost" onClick={() => setLinkSenha(null)}>Fechar</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AuditSheet user={auditFor} onClose={() => setAuditFor(null)} />
 

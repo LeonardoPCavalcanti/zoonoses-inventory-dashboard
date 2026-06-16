@@ -22,6 +22,9 @@ export interface AdminUser {
   id: string;
   nome: string;
   email: string;
+  cpf: string | null;
+  telefone: string | null;
+  nucleo_nome: string | null;
   role: Role | null;
   status: UserStatus;
   sector: string | null;
