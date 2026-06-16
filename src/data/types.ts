@@ -180,4 +180,19 @@ export interface Pedido {
   nucleo?: Pick<Nucleo, 'id' | 'nome' | 'codigo'> | null;
   solicitante?: Pick<Profile, 'id' | 'nome'> | null;
   itens?: PedidoItem[];
+  documentos?: PedidoDocumento[];
+}
+
+export type DocumentoTipoVal = 'ORIGINAL' | 'APROVADO';
+
+export interface PedidoDocumento {
+  id: string;
+  pedido_id: string;
+  tipo: DocumentoTipoVal;
+  storage_path: string;
+  filename: string;
+  enviado_por: string | null;
+  enviado_em: string;
+  assinatura_png: string | null;
+  hash_sha256: string | null;
 }
