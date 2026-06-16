@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, FileSpreadsheet, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,10 @@ import {
 } from '@/components/ui/select';
 import { ErrorState, TableSkeleton } from '@/components/shared/states';
 import { PedidoStatusBadge } from '@/components/pedidos/PedidoStatusBadge';
+import { AlertaAtrasados } from '@/components/pedidos/AlertaAtrasados';
 import { usePedidos, type PedidoFiltros } from '@/data/pedidos';
+import { montarLinhas, nomeArquivoRelatorio } from '@/pedidos/relatorio';
+import { exportarExcel, exportarPdf } from '@/lib/export';
 import { useNucleos } from '@/data/nucleos';
 import { resumoItens, STATUS_LABEL } from '@/pedidos/flow';
 import type { PedidoStatus } from '@/data/types';
@@ -29,11 +32,17 @@ export default function Pedidos() {
   useRealtime([{ table: 'pedidos', keys: [qk.pedidos, qk.pedidoContadores] }]);
 
   const podeCriar = role === 'NUCLEUS_SUPERVISOR' || role === 'ADMIN';
+  const ehAnalista = role === 'ADMIN' || role === 'FINANCIAL_MANAGER';
+  const lista = pedidos.data ?? [];
+  const temLinhas = lista.length > 0;
+  const baixarExcel = () => exportarExcel(montarLinhas(lista), nomeArquivoRelatorio('xlsx'));
+  const baixarPdf = () => exportarPdf(montarLinhas(lista), nomeArquivoRelatorio('pdf'), 'Central de pedidos');
 
   if (pedidos.isError) return <ErrorState error={pedidos.error} />;
 
   return (
     <div className="space-y-4">
+      {ehAnalista && <AlertaAtrasados />}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <Input
@@ -61,11 +70,19 @@ export default function Pedidos() {
             </SelectContent>
           </Select>
         </div>
-        {podeCriar && (
-          <Button asChild>
-            <Link to="/pedidos/novo"><Plus className="mr-1 h-4 w-4" /> Novo pedido</Link>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={!temLinhas} onClick={baixarExcel}>
+            <FileSpreadsheet className="mr-1 h-4 w-4" /> Excel
           </Button>
-        )}
+          <Button variant="outline" size="sm" disabled={!temLinhas} onClick={baixarPdf}>
+            <FileText className="mr-1 h-4 w-4" /> PDF
+          </Button>
+          {podeCriar && (
+            <Button asChild>
+              <Link to="/pedidos/novo"><Plus className="mr-1 h-4 w-4" /> Novo pedido</Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       <Card>
