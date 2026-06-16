@@ -11,6 +11,8 @@ import {
 import { useAuth } from '@/auth/AuthProvider';
 import { supabase } from '@/lib/supabase';
 import { validatePassword } from '@/auth/password';
+import { formatarCpf, formatarTelefone, soDigitos, validarTelefoneBR } from '@/auth/identidade';
+import { useMeuContato, useAtualizarTelefone } from '@/data/users';
 import { ROLE_LABEL } from '@/auth/roles';
 
 interface Enrolling {
@@ -20,7 +22,12 @@ interface Enrolling {
 }
 
 export default function Conta() {
-  const { profile, role } = useAuth();
+  const { profile, role, session } = useAuth();
+  const contato = useMeuContato();
+  const atualizarTel = useAtualizarTelefone();
+  const [telefone, setTelefone] = useState('');
+  useEffect(() => { if (contato.data?.telefone) setTelefone(contato.data.telefone); }, [contato.data?.telefone]);
+  const telOk = validarTelefoneBR(telefone);
   const [pwd, setPwd] = useState('');
   const [busyPwd, setBusyPwd] = useState(false);
 
@@ -115,6 +122,39 @@ export default function Conta() {
           {role && <> · <span className="text-foreground/80">{ROLE_LABEL[role]}</span></>}
         </p>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Dados pessoais</CardTitle>
+          <CardDescription>CPF e e-mail são fixos. Você pode atualizar seu telefone.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label>CPF</Label>
+              <Input readOnly value={contato.data?.cpf ? formatarCpf(contato.data.cpf) : '—'} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>E-mail</Label>
+              <Input readOnly value={session?.user.email ?? '—'} />
+            </div>
+          </div>
+          <form
+            className="flex items-end gap-3"
+            onSubmit={(e) => { e.preventDefault(); if (telOk) atualizarTel.mutate(soDigitos(telefone)); }}
+          >
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="telefone">Telefone</Label>
+              <Input id="telefone" inputMode="numeric" placeholder="(00) 90000-0000"
+                value={formatarTelefone(telefone)} onChange={(e) => setTelefone(soDigitos(e.target.value))} />
+              {telefone && !telOk && <p className="text-xs text-destructive">Telefone inválido.</p>}
+            </div>
+            <Button type="submit" disabled={!telOk || atualizarTel.isPending}>
+              {atualizarTel.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Salvar telefone'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
