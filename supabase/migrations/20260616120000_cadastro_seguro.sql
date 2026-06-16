@@ -43,7 +43,7 @@ create unique index if not exists profiles_telefone_uniq
 -- qualquer ativo ler todas as linhas). Como há GRANT SELECT amplo, revogar só a
 -- coluna é no-op: revoga-se o SELECT da tabela e concede-se SELECT apenas nas
 -- colunas permitidas (todas menos cpf/telefone). cpf/telefone só via RPC definer.
-revoke select on public.profiles from authenticated;
+revoke select on public.profiles from authenticated, anon;
 grant select (id, nome, papel, created_at, role, status, sector, rejection_note, created_by, last_login_at, nucleo_id)
   on public.profiles to authenticated;
 
