@@ -7,6 +7,11 @@ import type { Pedido, PedidoCritica, PedidoDocumento, PedidoEvento, PedidoItem }
 
 const BUCKET = 'pedidos-documentos';
 
+/** Dispara a Edge Function de e-mail em best-effort (inerte até o SMTP existir). */
+function notificar(tipo: 'criacao' | 'critica' | 'aprovacao' | 'rejeicao', pedidoId: string) {
+  void supabase.functions.invoke('notificar', { body: { tipo, pedido_id: pedidoId } }).catch(() => {});
+}
+
 const LIST_SELECT =
   '*, nucleo:nucleos(id,nome,codigo), solicitante:profiles!pedidos_solicitante_id_fkey(id,nome), itens:pedido_itens(*, produto:produtos(id,nome,unidade))';
 
@@ -89,6 +94,7 @@ export function useCriarPedido() {
     },
     onSuccess: (rows) => {
       invalidate();
+      if (rows?.[0]?.id) notificar('criacao', rows[0].id);
       toast.success(`Pedido ${rows?.[0]?.codigo ?? ''} criado`);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -96,7 +102,9 @@ export function useCriarPedido() {
 }
 
 /** Fábrica para as RPCs de transição que recebem só o id (+ payload). */
-function useRpcAcao<TArgs extends Record<string, unknown>>(fn: string, sucesso: string) {
+function useRpcAcao<TArgs extends Record<string, unknown>>(
+  fn: string, sucesso: string, posSucesso?: (id: string) => void,
+) {
   const qc = useQueryClient();
   const invalidate = useInvalidate();
   return useMutation({
@@ -112,13 +120,16 @@ function useRpcAcao<TArgs extends Record<string, unknown>>(fn: string, sucesso: 
       qc.invalidateQueries({ queryKey: qk.estoque });
       qc.invalidateQueries({ queryKey: qk.movimentacoes });
       toast.success(sucesso);
+      posSucesso?.(id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 }
 
-export const useCriticar = () => useRpcAcao<{ p_motivo: string }>('criticar_pedido', 'Crítica enviada');
-export const useRejeitar = () => useRpcAcao<{ p_motivo: string }>('rejeitar_pedido', 'Pedido rejeitado');
+export const useCriticar = () =>
+  useRpcAcao<{ p_motivo: string }>('criticar_pedido', 'Crítica enviada', (id) => notificar('critica', id));
+export const useRejeitar = () =>
+  useRpcAcao<{ p_motivo: string }>('rejeitar_pedido', 'Pedido rejeitado', (id) => notificar('rejeicao', id));
 export const useAprovar = () =>
   useRpcAcao<{ p_itens_aprovados: unknown; p_comentario: string | null }>('aprovar_pedido', 'Pedido aprovado');
 export const useResubmeter = () =>
@@ -144,6 +155,24 @@ export function useContadoresPedidos() {
       };
       const [aguardando, enviado] = await Promise.all([count('AGUARDANDO_ANALISE'), count('ENVIADO')]);
       return { aguardando, enviado };
+    },
+  });
+}
+
+/** Pedidos parados em AGUARDANDO_ANALISE há mais que o limite (RLS já filtra por papel). */
+export function usePedidosAtrasados(diasLimite = 5) {
+  return useQuery({
+    queryKey: [...qk.pedidos, 'atrasados', diasLimite] as const,
+    queryFn: async (): Promise<Pedido[]> => {
+      const limite = new Date(Date.now() - diasLimite * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('pedidos')
+        .select(LIST_SELECT)
+        .eq('status', 'AGUARDANDO_ANALISE')
+        .lt('created_at', limite)
+        .order('created_at', { ascending: true });
+      if (error) throw error;
+      return data as unknown as Pedido[];
     },
   });
 }
@@ -209,6 +238,7 @@ export function useAssinarPedido() {
       invalidate();
       qc.invalidateQueries({ queryKey: qk.pedido(args.pedidoId) });
       toast.success('Pedido aprovado e assinado');
+      notificar('aprovacao', args.pedidoId);
     },
     onError: (e: Error) => toast.error(e.message),
   });
