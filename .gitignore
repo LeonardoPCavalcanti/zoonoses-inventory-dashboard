@@ -22,3 +22,6 @@ npm-debug.log*
 # Supabase
 supabase/.temp
 supabase/.branches
+
+# artefatos internos de desenvolvimento
+docs/superpowers/
