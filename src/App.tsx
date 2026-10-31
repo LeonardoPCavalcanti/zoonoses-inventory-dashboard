@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { ThemeProvider } from 'next-themes';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { HashRouter, Routes, Route } from 'react-router-dom';
@@ -10,22 +10,26 @@ import ProtectedRoute from '@/auth/ProtectedRoute';
 import type { Capability } from '@/auth/roles';
 import AppShell from '@/components/layout/AppShell';
 import Login from '@/pages/Login';
-import Overview from '@/pages/Overview';
-import Produtos from '@/pages/Produtos';
-import Movimentacoes from '@/pages/Movimentacoes';
-import Auditoria from '@/pages/Auditoria';
-import Cadastros from '@/pages/Cadastros';
 import NotFound from '@/pages/NotFound';
 import Cadastrar from '@/pages/Cadastrar';
 import AguardandoAprovacao from '@/pages/AguardandoAprovacao';
 import EsqueciSenha from '@/pages/EsqueciSenha';
 import RedefinirSenha from '@/pages/RedefinirSenha';
 import AuthCallback from '@/pages/AuthCallback';
-import Conta from '@/pages/Conta';
-import UsuariosAdmin from '@/pages/UsuariosAdmin';
-import Pedidos from '@/pages/Pedidos';
-import NovoPedido from '@/pages/NovoPedido';
-import PedidoDetalhe from '@/pages/PedidoDetalhe';
+
+// Paginas internas carregam sob demanda: o bundle inicial fica com o login e
+// o shell; graficos (recharts), PDF (pdf.js) e exportacoes (xlsx/jspdf) so
+// descem quando a rota que os usa abre.
+const Overview = lazy(() => import('@/pages/Overview'));
+const Produtos = lazy(() => import('@/pages/Produtos'));
+const Movimentacoes = lazy(() => import('@/pages/Movimentacoes'));
+const Auditoria = lazy(() => import('@/pages/Auditoria'));
+const Cadastros = lazy(() => import('@/pages/Cadastros'));
+const Conta = lazy(() => import('@/pages/Conta'));
+const UsuariosAdmin = lazy(() => import('@/pages/UsuariosAdmin'));
+const Pedidos = lazy(() => import('@/pages/Pedidos'));
+const NovoPedido = lazy(() => import('@/pages/NovoPedido'));
+const PedidoDetalhe = lazy(() => import('@/pages/PedidoDetalhe'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -35,7 +39,11 @@ const queryClient = new QueryClient({
 function Protected({ children, requireCapability }: { children: ReactNode; requireCapability?: Capability }) {
   return (
     <ProtectedRoute requireCapability={requireCapability}>
-      <AppShell>{children}</AppShell>
+      <AppShell>
+        <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">Carregando…</div>}>
+          {children}
+        </Suspense>
+      </AppShell>
     </ProtectedRoute>
   );
 }

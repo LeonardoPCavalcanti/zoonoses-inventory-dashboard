@@ -146,7 +146,7 @@ export default function Overview() {
             {vencendo.map((x) => (
               <div key={x.produto_id} className="flex items-center justify-between rounded-md border p-3">
                 <span className="text-sm font-medium">{x.nome}</span>
-                <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400">
+                <Badge variant="outline" className="border-amber-500/40 text-amber-700 dark:text-amber-400">
                   {x.dias! < 0 ? 'vencido' : `${x.dias} dias`}
                 </Badge>
               </div>

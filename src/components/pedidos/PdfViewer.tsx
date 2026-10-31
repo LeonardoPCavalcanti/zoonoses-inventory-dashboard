@@ -20,7 +20,7 @@ export function PdfViewer({ url, filename }: { url: string; filename: string }) 
     let cancelado = false;
     (async () => {
       try {
-        const pdf = await pdfjs.getDocument(url).promise;
+        const pdf = await pdfjs.getDocument({ url }).promise;
         const page = await pdf.getPage(1);
         const viewport = page.getViewport({ scale: 1.2 });
         const canvas = canvasRef.current;

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { lazy, Suspense, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,7 +7,9 @@ import {
   Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from '@/components/ui/dialog';
 import { AssinaturaCanvas, type AssinaturaCanvasHandle } from './AssinaturaCanvas';
-import { PdfViewer } from './PdfViewer';
+
+// pdf.js (~1,2 MB com o worker) so desce quando um documento e aberto.
+const PdfViewer = lazy(() => import('./PdfViewer').then((m) => ({ default: m.PdfViewer })));
 import { useAssinarPedido, useDocumentoUrl } from '@/data/pedidos';
 import type { PedidoDocumento, PedidoItem } from '@/data/types';
 
@@ -56,7 +58,7 @@ export function AssinarDialog({ pedidoId, itens, original }: Props) {
           {original && originalUrl.data && (
             <div className="space-y-1.5">
               <Label>Documento comprobatório</Label>
-              <PdfViewer url={originalUrl.data} filename={original.filename} />
+              <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Carregando documento…</div>}><PdfViewer url={originalUrl.data} filename={original.filename} /></Suspense>
             </div>
           )}
           <div className="space-y-1.5">

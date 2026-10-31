@@ -113,7 +113,7 @@ export default function Produtos() {
                         ) : (
                           <Badge
                             variant="outline"
-                            className={dias <= 30 ? 'border-amber-500/40 text-amber-600 dark:text-amber-400' : ''}
+                            className={dias <= 30 ? 'border-amber-500/40 text-amber-700 dark:text-amber-400' : ''}
                           >
                             {dias < 0 ? 'vencido' : `${dias} dias`}
                           </Badge>

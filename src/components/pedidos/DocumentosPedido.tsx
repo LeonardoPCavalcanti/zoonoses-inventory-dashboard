@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Download, FileText, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PdfViewer } from './PdfViewer';
+
+// pdf.js (~1,2 MB com o worker) so desce quando um documento e aberto.
+const PdfViewer = lazy(() => import('./PdfViewer').then((m) => ({ default: m.PdfViewer })));
 import { useDocumentoUrl } from '@/data/pedidos';
 import type { PedidoDocumento } from '@/data/types';
 
@@ -31,7 +33,7 @@ function DocLinha({ doc }: { doc: PedidoDocumento }) {
             <DialogHeader>
               <DialogTitle>{aprovado ? 'Aval assinado' : doc.filename}</DialogTitle>
             </DialogHeader>
-            {url.data && <PdfViewer url={url.data} filename={aprovado ? 'aval.pdf' : doc.filename} />}
+            {url.data && <Suspense fallback={<div className="p-4 text-sm text-muted-foreground">Carregando documento…</div>}><PdfViewer url={url.data} filename={aprovado ? 'aval.pdf' : doc.filename} /></Suspense>}
           </DialogContent>
         </Dialog>
         <Button variant="ghost" size="icon" aria-label="Baixar" disabled={!url.data} asChild>

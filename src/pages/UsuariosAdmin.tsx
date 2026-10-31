@@ -29,7 +29,7 @@ import type { AdminUser, UserStatus } from '@/data/types';
 
 const STATUS_BADGE: Record<UserStatus, string> = {
   ACTIVE: 'bg-primary/10 text-primary',
-  PENDING: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  PENDING: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
   INACTIVE: 'bg-muted text-muted-foreground',
   REJECTED: 'bg-destructive/10 text-destructive',
 };

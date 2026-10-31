@@ -49,7 +49,7 @@ function useUserMutation<T>(
 
 export function useApproveUser() {
   return useUserMutation<{ targetId: string; role: Role; sector?: string | null }>(
-    ({ targetId, role, sector }) =>
+    async ({ targetId, role, sector }) =>
       supabase.rpc('approve_user', { target_id: targetId, assign_role: role, assign_sector: sector ?? null }),
     'Cadastro aprovado',
   );
@@ -57,21 +57,21 @@ export function useApproveUser() {
 
 export function useRejectUser() {
   return useUserMutation<{ targetId: string; note?: string | null }>(
-    ({ targetId, note }) => supabase.rpc('reject_user', { target_id: targetId, note: note ?? null }),
+    async ({ targetId, note }) => supabase.rpc('reject_user', { target_id: targetId, note: note ?? null }),
     'Cadastro rejeitado',
   );
 }
 
 export function useSetUserRole() {
   return useUserMutation<{ targetId: string; role: Role }>(
-    ({ targetId, role }) => supabase.rpc('set_user_role', { target_id: targetId, new_role: role }),
+    async ({ targetId, role }) => supabase.rpc('set_user_role', { target_id: targetId, new_role: role }),
     'Papel atualizado',
   );
 }
 
 export function useSetUserStatus() {
   return useUserMutation<{ targetId: string; status: 'ACTIVE' | 'INACTIVE' }>(
-    ({ targetId, status }) => supabase.rpc('set_user_status', { target_id: targetId, new_status: status }),
+    async ({ targetId, status }) => supabase.rpc('set_user_status', { target_id: targetId, new_status: status }),
     'Status atualizado',
   );
 }
