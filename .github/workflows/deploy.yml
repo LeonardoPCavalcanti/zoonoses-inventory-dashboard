@@ -51,6 +51,9 @@ jobs:
 
   deploy:
     needs: build
+    # Em pull request o build serve so de verificacao; publicar no Pages e so
+    # para o que entrou na main.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
