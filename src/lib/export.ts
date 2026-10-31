@@ -1,10 +1,11 @@
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { COLUNAS_RELATORIO } from '@/pedidos/relatorio';
 
+// xlsx e jspdf somam quase 1 MB minificado; sao importados so no clique de
+// exportar, para nao pesar no carregamento de nenhuma tela.
+
 /** Gera e baixa um .xlsx com cabeçalho + linhas. */
-export function exportarExcel(linhas: string[][], arquivo: string): void {
+export async function exportarExcel(linhas: string[][], arquivo: string): Promise<void> {
+  const XLSX = await import('xlsx');
   const ws = XLSX.utils.aoa_to_sheet([[...COLUNAS_RELATORIO], ...linhas]);
   ws['!cols'] = COLUNAS_RELATORIO.map(() => ({ wch: 22 }));
   const wb = XLSX.utils.book_new();
@@ -13,7 +14,8 @@ export function exportarExcel(linhas: string[][], arquivo: string): void {
 }
 
 /** Gera e baixa um PDF gerencial (título + data + tabela). */
-export function exportarPdf(linhas: string[][], arquivo: string, titulo: string): void {
+export async function exportarPdf(linhas: string[][], arquivo: string, titulo: string): Promise<void> {
+  const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
   const doc = new jsPDF({ orientation: 'landscape' });
   doc.setFontSize(14);
   doc.text(titulo, 14, 16);
