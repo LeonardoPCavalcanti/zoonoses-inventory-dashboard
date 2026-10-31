@@ -7,7 +7,7 @@ export interface RealtimeBinding {
   /** Nome da tabela em `public`. */
   table: string;
   /** queryKeys a invalidar quando a tabela mudar. */
-  keys: readonly unknown[][];
+  keys: readonly (readonly unknown[])[];
   /** Callback opcional (ex.: toast) ao receber um evento. */
   onChange?: (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void;
 }
@@ -19,9 +19,13 @@ export interface RealtimeBinding {
  */
 export function useRealtime(bindings: RealtimeBinding[]) {
   const qc = useQueryClient();
-  // Mantém o callback mais recente sem recriar o canal.
+  // Mantém o callback mais recente sem recriar o canal. A atualização fica
+  // num effect (não no render) e, por ser declarado antes, roda antes do
+  // effect que assina o canal.
   const ref = useRef(bindings);
-  ref.current = bindings;
+  useEffect(() => {
+    ref.current = bindings;
+  });
 
   useEffect(() => {
     const channel = supabase.channel('estoque-realtime');

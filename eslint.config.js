@@ -24,6 +24,10 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      // Sincronizar estado local a partir de dados do TanStack Query dentro de
+      // um effect e um padrao assumido neste painel; a regra nova do plugin
+      // (v7) trata isso como erro e nao ha cascata real aqui.
+      "react-hooks/set-state-in-effect": "off",
     },
   }
 );

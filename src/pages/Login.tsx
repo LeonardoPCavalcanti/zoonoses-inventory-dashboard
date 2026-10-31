@@ -11,7 +11,7 @@ import {
 import { useAuth } from '@/auth/AuthProvider';
 import { DEMO_EMAIL, DEMO_PASSWORD } from '@/auth/demo';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
-import { STATUS_MESSAGE, nextLoginStep, type AccountStatus } from '@/auth/loginState';
+import { STATUS_MESSAGE, nextLoginStep, type AccountStatus, type Aal } from '@/auth/loginState';
 import { AuthLayout } from '@/components/auth/AuthLayout';
 
 export default function Login() {
@@ -30,8 +30,8 @@ export default function Login() {
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     const step = nextLoginStep({
       status: (status as AccountStatus | null) ?? 'PENDING',
-      currentLevel: aal?.currentLevel ?? null,
-      nextLevel: aal?.nextLevel ?? null,
+      currentLevel: (aal?.currentLevel as Aal) ?? null,
+      nextLevel: (aal?.nextLevel as Aal) ?? null,
     });
 
     if (step.step === 'blocked') {
